@@ -46,6 +46,18 @@ Each profile gets isolated localStorage keys:
 - `qm_profiles` — array of all profiles
 - `qm_history_{pid}` — quiz history per profile
 - `qm_asked_{pid}` — question hashes per profile (anti-repeat)
+- `qm_auth` — JSON object `{username, passwordHash}` for auto-login (logged-in users only)
+
+### Account System (GitHub Gist registry)
+- Auth screen is the initial screen (not profiles picker)
+- `authUser` state: `{username, passwordHash}` — null for guest players
+- Server endpoints: `/api/auth/register`, `/api/auth/login`, `/api/auth/save`
+- Registry Gist (description: "QuizMania-Registry") maps username → {gistId, passwordHash}
+- Per-user Gist stores: {profile, history, asked}
+- `cloudSave()` called in `endQuiz()` when authUser is set
+- Auto-login on load: reads `qm_auth` from localStorage, sends `_hash` to `/api/auth/login`
+- Guest play: no auth, uses local profiles + localStorage only
+- Logout: clears `qm_auth`, resets to auth screen
 
 ### Anti-Repeat Questions
 Question hashes stored per `topic-difficulty` bucket. Sent to Claude as "Previously asked — AVOID repeating". Cap at 200 per bucket then reset.

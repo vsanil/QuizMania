@@ -319,6 +319,25 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 /* CONFETTI */
 .confetti-container{position:fixed;inset:0;pointer-events:none;z-index:999;}
 
+/* ============ AUTH SCREEN ============ */
+#auth-screen{flex-direction:column;}
+.auth-box{max-width:420px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:32px;}
+.auth-logo{font-size:3rem;font-weight:900;text-align:center;margin-bottom:4px;
+  background:linear-gradient(135deg,#a855f7,#3b82f6,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.auth-tagline{text-align:center;color:var(--text2);font-size:0.88rem;margin-bottom:24px;}
+.auth-tabs{display:flex;background:var(--card2);border-radius:12px;padding:4px;margin-bottom:22px;gap:4px;}
+.auth-tab{flex:1;padding:9px;border-radius:9px;text-align:center;cursor:pointer;font-weight:800;font-size:0.88rem;
+  color:var(--text2);transition:var(--transition);}
+.auth-tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(124,58,237,0.4);}
+.auth-error{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.3);
+  border-radius:9px;padding:9px 13px;font-size:0.83rem;font-weight:700;margin-bottom:12px;display:none;}
+.auth-divider{text-align:center;color:var(--text2);font-size:0.8rem;margin:16px 0;position:relative;}
+.auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border);}
+.auth-divider::before{left:0;}.auth-divider::after{right:0;}
+.cloud-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,0.15);border:1px solid var(--green);
+  color:var(--green);font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:20px;}
+@media(max-width:560px){.auth-box{padding:22px 16px;border-radius:18px;}.auth-logo{font-size:2.2rem;}}
+
 /* ============ LEADERBOARD ============ */
 #leaderboard-screen{max-width:600px;margin:0 auto;}
 .lb-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;
@@ -470,7 +489,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 <header>
   <div class="logo" onclick="goHome()">⚡ QuizMania</div>
   <div class="header-right">
-    <div class="profile-chip" id="profile-chip" style="display:none" onclick="switchProfile()">
+    <div class="profile-chip" id="profile-chip" style="display:none" onclick="handleProfileChipClick()">
       <span id="chip-avatar">🦊</span>
       <span id="chip-name">Player</span>
       <span style="color:var(--text2);font-size:0.7rem">▾</span>
@@ -485,14 +504,83 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 <div class="toast-container" id="toast-container"></div>
 <div class="confetti-container" id="confetti-container"></div>
 
-<!-- ======== PROFILES SCREEN ======== -->
-<div class="screen center active" id="profiles-screen">
+<!-- ======== AUTH SCREEN ======== -->
+<div class="screen center active" id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">⚡ QuizMania</div>
+    <div class="auth-tagline">AI-powered trivia for kids &amp; teens!</div>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</div>
+      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Create Account</div>
+    </div>
+
+    <div id="auth-error" class="auth-error"></div>
+
+    <!-- LOGIN PANEL -->
+    <div id="panel-login">
+      <div class="form-group">
+        <label class="form-label">👤 Username</label>
+        <input class="form-input" id="login-user" placeholder="your username" autocomplete="username" autocapitalize="none"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🔒 Password</label>
+        <input class="form-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px" onclick="doLogin()">▶ Sign In</button>
+      <div class="auth-divider">or</div>
+      <button class="btn btn-secondary" style="width:100%;justify-content:center" onclick="playAsGuest()">🎮 Play as Guest</button>
+    </div>
+
+    <!-- REGISTER PANEL -->
+    <div id="panel-register" style="display:none">
+      <div class="form-group">
+        <label class="form-label">👤 Username <span style="color:var(--text2);font-weight:600">(min 3 chars)</span></label>
+        <input class="form-input" id="reg-user" placeholder="choose a username" autocomplete="username" autocapitalize="none"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🔒 Password <span style="color:var(--text2);font-weight:600">(min 4 chars)</span></label>
+        <input class="form-input" id="reg-pass" type="password" placeholder="••••••••" autocomplete="new-password"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🎂 Age Group</label>
+        <div class="pill-row" id="reg-age-pills">
+          <div class="pill" data-age="kids" onclick="selectPill(this,'reg-age-pills','age')">🐣 Kids (8–11)</div>
+          <div class="pill" data-age="tweens" onclick="selectPill(this,'reg-age-pills','age')">🧒 Tweens (12–14)</div>
+          <div class="pill" data-age="teens" onclick="selectPill(this,'reg-age-pills','age')">🧑 Teens (15–18)</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🎨 Pick Avatar</label>
+        <div class="avatar-grid" id="reg-avatars">
+          <div class="avatar-btn" data-avatar="🦊" onclick="selectRegAvatar(this)">🦊</div>
+          <div class="avatar-btn" data-avatar="🐼" onclick="selectRegAvatar(this)">🐼</div>
+          <div class="avatar-btn" data-avatar="🦄" onclick="selectRegAvatar(this)">🦄</div>
+          <div class="avatar-btn" data-avatar="🤖" onclick="selectRegAvatar(this)">🤖</div>
+          <div class="avatar-btn" data-avatar="🧑‍🚀" onclick="selectRegAvatar(this)">🧑‍🚀</div>
+          <div class="avatar-btn" data-avatar="🐉" onclick="selectRegAvatar(this)">🐉</div>
+          <div class="avatar-btn" data-avatar="🦁" onclick="selectRegAvatar(this)">🦁</div>
+          <div class="avatar-btn" data-avatar="🐸" onclick="selectRegAvatar(this)">🐸</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px" onclick="doRegister()">🚀 Create Account</button>
+      <div class="auth-divider">or</div>
+      <button class="btn btn-secondary" style="width:100%;justify-content:center" onclick="playAsGuest()">🎮 Play as Guest</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== PROFILES SCREEN (Guest mode) ======== -->
+<div class="screen center" id="profiles-screen">
   <div style="width:100%;max-width:720px">
     <div class="profiles-header">
       <div class="profiles-title">⚡ QuizMania</div>
       <div class="profiles-sub">Who's playing today?</div>
     </div>
     <div class="profiles-grid" id="profiles-grid"></div>
+    <div style="text-align:center;margin-top:12px">
+      <button class="btn btn-secondary" onclick="showScreen('auth')" style="font-size:0.82rem">🔐 Sign in / Create Account</button>
+    </div>
   </div>
 </div>
 
@@ -815,7 +903,7 @@ const ACHIEVEMENTS = [
 ];
 
 // ---- APP STATE ----
-let profiles = [];          // all profiles
+let profiles = [];          // all profiles (guest mode)
 let activeProfile = null;   // current player
 let selectedTopic = null;
 let quizMode = 'questions';
@@ -826,18 +914,210 @@ let editingProfileId = null;
 let replayMode = false;
 let _prefetch = null;       // pre-fetched questions promise
 
+let authUser = null;        // { username, passwordHash } when logged in
+
 let qe = {}; // quiz engine
 
 // ---- INIT ----
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   loadTheme();
   loadMute();
   loadProfiles();
   loadToggles();
+  renderTopicGrid();
+
+  // Try auto-login from saved credentials
+  const savedAuth = lsGet('qm_auth');
+  if (savedAuth) {
+    showScreen('auth');
+    setAuthLoading(true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST', headers: {'content-type':'application/json'},
+        body: JSON.stringify({ username: savedAuth.username, password: null, _hash: savedAuth.passwordHash })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        loginSuccess(data);
+        return;
+      }
+    } catch(e) { /* server offline — fall through */ }
+    setAuthLoading(false);
+    // Credentials invalid or server down — clear and show auth
+    localStorage.removeItem('qm_auth');
+  }
+  renderProfilesScreen();
+  showScreen('auth');
+});
+
+// ---- AUTH ----
+
+function lsGet(key){ try{ return JSON.parse(localStorage.getItem(key)); }catch(e){ return null; } }
+function lsSet(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+function switchAuthTab(tab){
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-register').classList.toggle('active', tab==='register');
+  document.getElementById('panel-login').style.display = tab==='login' ? '' : 'none';
+  document.getElementById('panel-register').style.display = tab==='register' ? '' : 'none';
+  document.getElementById('auth-error').style.display='none';
+}
+
+function setAuthLoading(on){
+  const btns = document.querySelectorAll('#auth-screen .btn');
+  btns.forEach(b=>b.disabled=on);
+}
+
+function showAuthError(msg){
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function selectRegAvatar(el){
+  document.querySelectorAll('#reg-avatars .avatar-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function doLogin(){
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value.trim();
+  if(!username||!password){ showAuthError('Please enter username and password.'); return; }
+  setAuthLoading(true);
+  document.getElementById('auth-error').style.display='none';
+  try{
+    const res = await fetch('/api/auth/login',{
+      method:'POST', headers:{'content-type':'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const data = await res.json();
+    if(!res.ok){ showAuthError(data.error||'Login failed.'); setAuthLoading(false); return; }
+    loginSuccess(data);
+  }catch(e){
+    showAuthError('Could not reach server. Try again.');
+    setAuthLoading(false);
+  }
+}
+
+async function doRegister(){
+  const username = document.getElementById('reg-user').value.trim();
+  const password = document.getElementById('reg-pass').value.trim();
+  const ageEl = document.querySelector('#reg-age-pills .pill.selected');
+  const avatarEl = document.querySelector('#reg-avatars .avatar-btn.selected');
+  if(!username){ showAuthError('Please enter a username.'); return; }
+  if(!password){ showAuthError('Please enter a password.'); return; }
+  if(!ageEl){ showAuthError('Please select your age group.'); return; }
+  if(!avatarEl){ showAuthError('Please pick an avatar.'); return; }
+
+  const profile = {
+    id: 'p_'+Date.now(),
+    name: username,
+    age: ageEl.dataset.age,
+    avatar: avatarEl.dataset.avatar,
+    totalQuizzes:0, totalQs:0, bestStreak:0, streak:0,
+    lastStreakDate:null, topicScores:{}, speedRecord:null,
+    perfectByTopic:{}, customQuizzes:0
+  };
+
+  setAuthLoading(true);
+  document.getElementById('auth-error').style.display='none';
+  try{
+    const res = await fetch('/api/auth/register',{
+      method:'POST', headers:{'content-type':'application/json'},
+      body: JSON.stringify({username, password, profile})
+    });
+    const data = await res.json();
+    if(!res.ok){ showAuthError(data.error||'Registration failed.'); setAuthLoading(false); return; }
+    // Auto-login after registration
+    loginSuccess({...data, profile, history:[], asked:{}});
+  }catch(e){
+    showAuthError('Could not reach server. Try again.');
+    setAuthLoading(false);
+  }
+}
+
+function loginSuccess(data){
+  // data: { username, passwordHash, profile, history, asked }
+  authUser = { username: data.username, passwordHash: data.passwordHash };
+  lsSet('qm_auth', authUser);
+
+  // Store profile + history + asked locally
+  const p = data.profile || {};
+  if(!p.id) p.id = 'p_' + Date.now();
+  if(!profiles.find(x=>x.id===p.id)){
+    profiles.push(p);
+  } else {
+    const idx = profiles.findIndex(x=>x.id===p.id);
+    profiles[idx] = p;
+  }
+  saveProfiles();
+  if(data.history?.length) saveHistory(p.id, data.history);
+  if(data.asked && Object.keys(data.asked).length) saveAsked(p.id, data.asked);
+
+  setAuthLoading(false);
+  selectProfile(p.id);
+  toast('Welcome back, '+data.username+'! 👋','success');
+}
+
+function logout(){
+  showModal('👋','Sign Out?','You can sign back in any time — your progress is saved in the cloud.',
+    [{label:'Cancel', cls:'btn-secondary', action: closeModal},
+     {label:'Sign Out', cls:'btn-danger', action: ()=>{
+       closeModal();
+       authUser = null;
+       localStorage.removeItem('qm_auth');
+       activeProfile = null;
+       document.getElementById('profile-chip').style.display='none';
+       document.getElementById('history-btn').style.display='none';
+       document.getElementById('lb-btn').style.display='none';
+       // Reset auth form
+       document.getElementById('login-user').value='';
+       document.getElementById('login-pass').value='';
+       document.getElementById('auth-error').style.display='none';
+       switchAuthTab('login');
+       showScreen('auth');
+     }}]
+  );
+}
+
+function handleProfileChipClick(){
+  if(authUser){
+    // Logged-in: show account options
+    showModal('👤', authUser.username,
+      `<div style="text-align:left">
+        <p style="font-size:0.83rem;color:var(--text2);margin-bottom:14px">Signed in as <strong>${authUser.username}</strong></p>
+        <button class="btn btn-secondary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="closeModal();editProfile(activeProfile?.id)">✏️ Edit Profile</button>
+      </div>`,
+      [{label:'Sign Out', cls:'btn-danger', action: ()=>{ closeModal(); logout(); }},
+       {label:'Close', cls:'btn-secondary', action: closeModal}]
+    );
+  } else {
+    switchProfile(); // guest: show profile picker
+  }
+}
+
+async function cloudSave(){
+  if(!authUser || !activeProfile) return;
+  try{
+    await fetch('/api/auth/save',{
+      method:'POST', headers:{'content-type':'application/json'},
+      body: JSON.stringify({
+        username: authUser.username,
+        passwordHash: authUser.passwordHash,
+        profile: activeProfile,
+        history: getHistory(activeProfile.id),
+        asked: getAsked(activeProfile.id)
+      })
+    });
+  }catch(e){ console.warn('Cloud save failed:', e.message); }
+}
+
+function playAsGuest(){
+  authUser = null;
+  localStorage.removeItem('qm_auth');
   renderProfilesScreen();
   showScreen('profiles');
-  renderTopicGrid();
-});
+}
 
 // ---- MUTE ----
 let isMuted = false;
@@ -995,7 +1275,7 @@ function showScreen(name){
 
 function goHome(){
   if(activeProfile) showScreen('home');
-  else showScreen('profiles');
+  else showScreen('auth');
 }
 
 // ---- THEME ----
@@ -1048,6 +1328,7 @@ function selectProfile(id){
 }
 
 function switchProfile(){
+  if(authUser){ handleProfileChipClick(); return; }
   activeProfile = null;
   document.getElementById('profile-chip').style.display='none';
   document.getElementById('history-btn').style.display='none';
@@ -1092,6 +1373,7 @@ function doDeleteProfile(id){
 }
 
 function showModal(icon, title, sub, buttons){
+  closeModal(); // close any existing modal
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.id = 'modal-overlay';
@@ -1122,8 +1404,8 @@ function openNewProfile(){
 }
 
 function cancelSetup(){
-  renderProfilesScreen();
-  showScreen('profiles');
+  if(authUser){ showScreen('home'); }
+  else { renderProfilesScreen(); showScreen('profiles'); }
 }
 
 function selectPill(el, groupId, key){
@@ -1152,15 +1434,19 @@ function saveProfile(){
   if(editingProfileId){
     const p = profiles.find(p=>p.id===editingProfileId);
     if(p){ p.name=name; p.age=age; p.avatar=avatar; }
+    saveProfiles();
+    if(authUser) cloudSave(); // sync name/avatar update to cloud
+    renderProfilesScreen();
+    selectProfile(editingProfileId);
+    toast('Profile updated! ✨','success');
   } else {
     const newP = { id:'p_'+Date.now(), name, age, avatar, totalQuizzes:0, totalQs:0, bestStreak:0, streak:0, lastStreakDate:null, topicScores:{}, speedRecord:null, perfectByTopic:{}, customQuizzes:0 };
     profiles.push(newP);
+    saveProfiles();
+    renderProfilesScreen();
+    selectProfile(newP.id);
+    toast('Profile saved! 🎉','success');
   }
-  saveProfiles();
-  renderProfilesScreen();
-  if(editingProfileId){ selectProfile(editingProfileId); }
-  else { selectProfile(profiles[profiles.length-1].id); }
-  toast('Profile saved! 🎉','success');
 }
 
 // ---- HOME ----
@@ -1656,6 +1942,9 @@ function endQuiz(){
     document.getElementById('chip-name').textContent=activeProfile.name;
   }
   replayMode=false;
+
+  // Auto-save to cloud in background
+  cloudSave();
 }
 
 function animateCount(id,from,to,dur){
