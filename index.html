@@ -313,11 +313,118 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 /* CONFETTI */
 .confetti-container{position:fixed;inset:0;pointer-events:none;z-index:999;}
 
-/* RESPONSIVE */
+/* ============ RESPONSIVE ============ */
+
+/* Tablet (≤768px) */
+@media(max-width:768px){
+  .settings-grid{grid-template-columns:1fr;}
+  .results-score-big{font-size:2.8rem;}
+  .home-greeting h1{font-size:1.5rem;}
+  .stats-row{gap:7px;}
+  .stat-chip{min-width:70px;padding:8px 10px;}
+  .stat-num{font-size:1.2rem;}
+}
+
+/* Mobile (≤560px) */
 @media(max-width:560px){
-  .topic-grid{grid-template-columns:repeat(2,1fr);}
-  .profiles-title{font-size:2rem;}
-  .screen{padding:14px;}
+  /* Layout */
+  .screen{padding:12px;}
+  .screen.center{padding:12px;}
+
+  /* Header */
+  .logo{font-size:1.1rem;}
+  .profile-chip span:last-child{display:none;} /* hide chevron on tiny screens */
+  .profile-chip{padding:5px 9px;font-size:0.75rem;gap:5px;}
+  .btn-icon{width:32px;height:32px;font-size:0.9rem;}
+
+  /* Profiles screen */
+  .profiles-title{font-size:1.8rem;}
+  .profiles-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .profile-card{padding:16px 10px;}
+  .profile-avatar{font-size:2.2rem;}
+  .profile-name{font-size:0.88rem;}
+
+  /* Home screen */
+  .home-top{gap:10px;margin-bottom:16px;}
+  .home-avatar-big{font-size:2.5rem;}
+  .home-greeting h1{font-size:1.3rem;}
+  .home-greeting p{font-size:0.8rem;}
+  .stats-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px;}
+  .stat-chip{min-width:unset;}
+  .stat-num{font-size:1.1rem;}
+  .stat-label{font-size:0.65rem;}
+  .section-title{font-size:0.85rem;margin-bottom:10px;}
+
+  /* Topic grid */
+  .topic-grid{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+  .topic-card{padding:14px 10px;}
+  .topic-icon{font-size:1.8rem;margin-bottom:5px;}
+  .topic-name{font-size:0.78rem;}
+  .topic-desc{font-size:0.62rem;}
+
+  /* Custom topic row */
+  .custom-row{flex-direction:column;gap:7px;}
+  .custom-row .btn{width:100%;}
+
+  /* Start row */
+  .home-start-row{flex-direction:column;gap:8px;}
+  .home-start-row .btn{width:100%;justify-content:center;}
+
+  /* Strength bars */
+  .strength-name{width:72px;font-size:0.72rem;}
+
+  /* Achievements */
+  .ach-chip{font-size:0.72rem;padding:5px 9px;}
+
+  /* Quiz screen */
+  .quiz-topbar{gap:6px;}
+  .quiz-topic-badge{font-size:0.72rem;padding:4px 10px;}
+  .quiz-score-display{font-size:0.88rem;}
+  .timer-display{font-size:0.9rem;min-width:46px;padding:4px 9px;}
+  .question-text{font-size:1rem;}
+  .options-grid{grid-template-columns:1fr;gap:7px;margin-top:14px;}
+  .option-btn{padding:11px 12px;font-size:0.85rem;}
+  .quiz-actions{gap:7px;}
+  .lifeline-btn{padding:7px 11px;font-size:0.76rem;}
+
+  /* Settings */
+  .settings-title{font-size:1.3rem;}
+  .pill{padding:7px 12px;font-size:0.78rem;}
+
+  /* Results screen */
+  .results-badge{font-size:3.2rem;}
+  .results-title{font-size:1.4rem;}
+  .results-score-big{font-size:2.4rem;}
+  .results-stats{gap:7px;}
+  .result-stat{min-width:72px;padding:9px 12px;}
+  .result-stat-num{font-size:1.2rem;}
+  .results-actions{flex-direction:column;align-items:center;}
+  .results-actions .btn{width:100%;justify-content:center;}
+  .review-q{font-size:0.82rem;}
+  .review-answer{font-size:0.76rem;}
+
+  /* History */
+  .history-card{padding:13px 14px;}
+  .history-topic{font-size:0.88rem;}
+  .history-actions .btn{padding:6px 11px;font-size:0.74rem;}
+  .history-filters{gap:5px;}
+
+  /* Setup screen */
+  .setup-box{padding:20px 16px;}
+  .setup-title{font-size:1.3rem;}
+  .avatar-grid{gap:8px;}
+  .avatar-btn{width:42px;height:42px;font-size:1.3rem;}
+  .setup-actions{flex-direction:column;}
+  .setup-actions .btn{width:100%;justify-content:center;}
+
+  /* Streak bar */
+  .streak-bar{padding:10px 14px;}
+  .streak-num{font-size:1.4rem;}
+
+  /* Modal */
+  .modal-box{padding:22px 18px;}
+  .modal-actions{flex-direction:column;gap:8px;}
+  .modal-actions .btn{width:100%;justify-content:center;}
 }
 </style>
 </head>
@@ -474,6 +581,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
             <div class="pill selected" data-count="10" onclick="selectCount(this)">10</div>
             <div class="pill" data-count="15" onclick="selectCount(this)">15</div>
             <div class="pill" data-count="20" onclick="selectCount(this)">20</div>
+            <div class="pill" data-count="30" onclick="selectCount(this)">30</div>
+            <div class="pill" data-count="50" onclick="selectCount(this)">50</div>
           </div>
         </div>
         <div id="q-time-section" style="display:none">
@@ -483,6 +592,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
             <div class="pill selected" data-time="90" onclick="selectTime(this)">90s</div>
             <div class="pill" data-time="120" onclick="selectTime(this)">2 min</div>
             <div class="pill" data-time="300" onclick="selectTime(this)">5 min</div>
+            <div class="pill" data-time="600" onclick="selectTime(this)">10 min</div>
+            <div class="pill" data-time="900" onclick="selectTime(this)">15 min</div>
           </div>
         </div>
       </div>
@@ -647,6 +758,7 @@ let quizTime = 90;
 let quizDiff = 'medium';
 let editingProfileId = null;
 let replayMode = false;
+let _prefetch = null;       // pre-fetched questions promise
 
 let qe = {}; // quiz engine
 
@@ -982,6 +1094,11 @@ function goToSettings(){
   const icon = TOPICS.find(t=>t.id===selectedTopic)?.icon||'✏️';
   document.getElementById('settings-topic-badge').textContent = icon+' '+selectedTopic;
   showScreen('settings');
+  // Pre-fetch questions in the background while user picks settings
+  _prefetch = null;
+  const n = quizMode==='timed' ? 50 : quizCount;
+  _prefetch = generateQuestions(selectedTopic, quizDiff, n, activeProfile?.age||'tweens')
+    .catch(()=>{ _prefetch=null; }); // silently discard if settings change
 }
 
 // ---- SETTINGS ----
@@ -991,21 +1108,25 @@ function selectMode(el){
   quizMode=el.dataset.mode;
   document.getElementById('q-count-section').style.display=quizMode==='questions'?'block':'none';
   document.getElementById('q-time-section').style.display=quizMode==='timed'?'block':'none';
+  _prefetch=null; // settings changed, invalidate prefetch
 }
 function selectCount(el){
   document.querySelectorAll('[data-count]').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
   quizCount=parseInt(el.dataset.count);
+  _prefetch=null;
 }
 function selectTime(el){
   document.querySelectorAll('[data-time]').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
   quizTime=parseInt(el.dataset.time);
+  _prefetch=null;
 }
 function selectDiff(el){
   document.querySelectorAll('[data-diff]').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
   quizDiff=el.dataset.diff;
+  _prefetch=null;
 }
 
 // ---- CLAUDE API ----
@@ -1047,7 +1168,7 @@ Return ONLY a JSON array:
 "answer" must exactly match one of the options.`;
 
   const data = await callClaude({
-    model:'claude-haiku-4-5-20251001', max_tokens:4096,
+    model:'claude-haiku-4-5-20251001', max_tokens:2048,
     system:'You are a quiz question generator. Return ONLY valid JSON arrays. No markdown.',
     messages:[{role:'user',content:prompt}]
   });
@@ -1098,8 +1219,12 @@ async function startQuiz(replayQs=null){
 
   try{
     if(replayQs){ qe.questions=replayQs; }
-    else{
-      // Timed mode: generate plenty of questions so user never runs out
+    else if(_prefetch){
+      // Use pre-fetched questions (generated while user was on settings screen)
+      qe.questions = await _prefetch;
+      _prefetch = null;
+    } else {
+      // Fallback: generate now
       const n = quizMode==='timed' ? 50 : quizCount;
       qe.questions = await generateQuestions(selectedTopic,quizDiff,n,activeProfile?.age||'tweens');
     }
