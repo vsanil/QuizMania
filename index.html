@@ -1639,7 +1639,7 @@ Return ONLY a JSON array:
 "answer" must exactly match one of the options.`;
 
   const data = await callClaude({
-    model:'claude-haiku-4-5-20251001', max_tokens: count>20 ? 6000 : 2048,
+    model:'claude-haiku-4-5-20251001', max_tokens: count>20 ? 8000 : count>10 ? 4000 : 3000,
     system:'You are a quiz question generator. Return ONLY valid JSON arrays. No markdown.',
     messages:[{role:'user',content:prompt}]
   });
