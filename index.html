@@ -256,6 +256,12 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
   border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .map-container{background:var(--card2);border-radius:13px;overflow:hidden;margin-bottom:14px;border:1px solid var(--border);}
+.flag-display{text-align:center;padding:18px 10px;margin-bottom:14px;background:var(--card2);
+  border-radius:16px;border:1px solid var(--border);animation:flagPop 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+.flag-emoji{font-size:8rem;line-height:1;display:block;filter:drop-shadow(0 6px 20px rgba(0,0,0,0.4));}
+.flag-label{font-size:0.75rem;color:var(--text2);font-weight:700;margin-top:8px;text-transform:uppercase;letter-spacing:1px;}
+@keyframes flagPop{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+@media(max-width:560px){.flag-emoji{font-size:5.5rem;}}
 
 /* ============ RESULTS SCREEN ============ */
 #results-screen{max-width:660px;margin:0 auto;text-align:center;}
@@ -312,6 +318,36 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 
 /* CONFETTI */
 .confetti-container{position:fixed;inset:0;pointer-events:none;z-index:999;}
+
+/* ============ LEADERBOARD ============ */
+#leaderboard-screen{max-width:600px;margin:0 auto;}
+.lb-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;
+  margin-bottom:10px;display:flex;align-items:center;gap:16px;transition:var(--transition);}
+.lb-card:hover{border-color:var(--accent);}
+.lb-rank{font-size:1.8rem;font-weight:900;width:44px;text-align:center;}
+.lb-rank.gold{color:var(--gold);}
+.lb-rank.silver{color:#94a3b8;}
+.lb-rank.bronze{color:#cd7c3a;}
+.lb-avatar{font-size:2.2rem;}
+.lb-info{flex:1;}
+.lb-name{font-weight:800;font-size:1rem;}
+.lb-meta{font-size:0.76rem;color:var(--text2);margin-top:2px;}
+.lb-score{text-align:right;}
+.lb-score-num{font-size:1.5rem;font-weight:900;color:var(--accent2);}
+.lb-score-label{font-size:0.68rem;color:var(--text2);font-weight:600;text-transform:uppercase;}
+
+/* ============ DAILY CHALLENGE ============ */
+.daily-banner{background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(239,68,68,0.1));
+  border:1px solid var(--gold);border-radius:16px;padding:16px 20px;margin-bottom:20px;
+  display:flex;align-items:center;gap:14px;cursor:pointer;transition:var(--transition);}
+.daily-banner:hover{box-shadow:0 0 20px rgba(245,158,11,0.2);}
+.daily-icon{font-size:2.2rem;}
+.daily-info{flex:1;}
+.daily-title{font-weight:900;font-size:1rem;}
+.daily-sub{font-size:0.78rem;color:var(--text2);margin-top:2px;}
+.daily-badge{background:var(--gold);color:#000;font-weight:900;font-size:0.72rem;
+  padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.daily-done{background:var(--green);color:#fff;}
 
 /* ============ RESPONSIVE ============ */
 
@@ -440,6 +476,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       <span style="color:var(--text2);font-size:0.7rem">▾</span>
     </div>
     <button class="btn-icon" onclick="showScreen('history')" title="My Quizzes" id="history-btn" style="display:none">📜</button>
+    <button class="btn-icon" onclick="showScreen('leaderboard')" title="Leaderboard" id="lb-btn" style="display:none">🏆</button>
+    <button class="btn-icon" onclick="toggleMute()" title="Mute sounds" id="mute-btn">🔊</button>
     <button class="btn-icon" onclick="toggleTheme()" title="Toggle theme" id="theme-btn">🌙</button>
   </div>
 </header>
@@ -529,6 +567,16 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
         <div style="font-weight:800;font-size:0.9rem">Day Streak!</div>
         <div style="font-size:0.75rem;color:var(--text2)">Keep playing to keep it alive!</div>
       </div>
+    </div>
+
+    <!-- Daily Challenge -->
+    <div class="daily-banner" id="daily-banner" onclick="startDailyChallenge()">
+      <div class="daily-icon">⭐</div>
+      <div class="daily-info">
+        <div class="daily-title">Daily Challenge</div>
+        <div class="daily-sub" id="daily-sub">10 mixed questions — same for everyone today!</div>
+      </div>
+      <div class="daily-badge" id="daily-badge">Play Now</div>
     </div>
 
     <!-- TOPIC GRID — main action -->
@@ -662,6 +710,10 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       <div class="question-card" id="question-card">
         <div class="question-num" id="question-num">Question 1</div>
         <div class="question-text" id="question-text"></div>
+        <div class="flag-display" id="flag-display" style="display:none">
+          <span class="flag-emoji" id="flag-emoji"></span>
+          <div class="flag-label">Which country does this flag belong to?</div>
+        </div>
         <div class="map-container" id="map-container" style="display:none"></div>
         <div class="options-grid" id="options-grid"></div>
         <div class="explanation-box" id="explanation-box"></div>
@@ -692,12 +744,25 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
     <div class="results-actions">
       <button class="btn btn-primary btn-lg" onclick="playAgainFresh()">🔄 Fresh Questions</button>
       <button class="btn btn-secondary btn-lg" onclick="replayExact()">📼 Replay</button>
+      <button class="btn btn-secondary" onclick="shareScore()">📤 Share</button>
       <button class="btn btn-secondary" onclick="showScreen('home')">🏠 Home</button>
     </div>
     <div class="review-list">
       <h3>📋 Answer Review</h3>
       <div id="review-items"></div>
     </div>
+  </div>
+</div>
+
+<!-- ======== LEADERBOARD SCREEN ======== -->
+<div class="screen" id="leaderboard-screen">
+  <div style="max-width:600px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <h2 style="font-size:1.6rem;font-weight:900">🏆 Leaderboard</h2>
+      <button class="btn btn-secondary" onclick="showScreen('home')">← Back</button>
+    </div>
+    <p style="color:var(--text2);margin-bottom:20px;font-size:0.88rem">All-time rankings across all profiles.</p>
+    <div id="lb-list"></div>
   </div>
 </div>
 
@@ -726,6 +791,7 @@ const CLAUDE_ENDPOINT = '/api/claude';
 const TOPICS = [
   {id:'Mathematics',icon:'🔢',name:'Mathematics',desc:'Numbers & equations'},
   {id:'Science',icon:'🔬',name:'Science',desc:'Physics, chemistry, biology'},
+  {id:'Flag Quiz',icon:'🚩',name:'Flag Quiz',desc:'Guess the country from its flag'},
   {id:'World Atlas',icon:'🗺️',name:'World Atlas',desc:'Identify countries on a map'},
   {id:'Geography',icon:'🌍',name:'Geography',desc:'Capitals, rivers, mountains'},
   {id:'History',icon:'📜',name:'History',desc:'Key events & figures'},
@@ -765,12 +831,116 @@ let qe = {}; // quiz engine
 // ---- INIT ----
 window.addEventListener('load', () => {
   loadTheme();
+  loadMute();
   loadProfiles();
   loadToggles();
   renderProfilesScreen();
   showScreen('profiles');
   renderTopicGrid();
 });
+
+// ---- MUTE ----
+let isMuted = false;
+function toggleMute(){
+  isMuted = !isMuted;
+  ls('qm_muted', isMuted);
+  document.getElementById('mute-btn').textContent = isMuted ? '🔇' : '🔊';
+  toast(isMuted ? 'Sounds off 🔇' : 'Sounds on 🔊', 'info');
+}
+function loadMute(){
+  isMuted = ls('qm_muted') === 'true';
+  document.getElementById('mute-btn').textContent = isMuted ? '🔇' : '🔊';
+}
+
+// ---- LEADERBOARD ----
+function renderLeaderboard(){
+  const ranked = profiles.map(p => {
+    const hist = getHistory(p.id);
+    const avg = hist.length ? Math.round(hist.reduce((a,b)=>a+b.pct,0)/hist.length) : 0;
+    const best = hist.length ? Math.max(...hist.map(h=>h.pct)) : 0;
+    return {...p, avg, best, quizzes: p.totalQuizzes||0};
+  }).sort((a,b) => b.avg - a.avg || b.quizzes - a.quizzes);
+
+  const medals = ['🥇','🥈','🥉'];
+  const rankClass = ['gold','silver','bronze'];
+  document.getElementById('lb-list').innerHTML = ranked.length ? ranked.map((p,i) => `
+    <div class="lb-card" onclick="selectProfile('${p.id}')">
+      <div class="lb-rank ${rankClass[i]||''}">${medals[i]||'#'+(i+1)}</div>
+      <div class="lb-avatar">${p.avatar}</div>
+      <div class="lb-info">
+        <div class="lb-name">${p.name}</div>
+        <div class="lb-meta">${{kids:'🐣 Kids',tweens:'🧒 Tweens',teens:'🧑 Teens'}[p.age]||p.age} · ${p.quizzes} quizzes · Best: ${p.best}%</div>
+      </div>
+      <div class="lb-score">
+        <div class="lb-score-num">${p.avg}%</div>
+        <div class="lb-score-label">Avg Score</div>
+      </div>
+    </div>`).join('')
+  : `<div class="empty-state"><div class="empty-icon">🏆</div><div>No quizzes played yet!</div></div>`;
+}
+
+// ---- SHARE SCORE ----
+function shareScore(){
+  const rec = window._lastQuizRec;
+  if(!rec) return;
+  const badge = rec.pct>=90?'🥇':rec.pct>=70?'🥈':rec.pct>=50?'🥉':'💪';
+  const text = `${badge} I scored ${rec.pct}% on ${rec.topic} in QuizMania!\n${rec.correct}/${rec.totalQuestions} correct · ${rec.timeTaken}s\nPlay at quizmania.onrender.com ⚡`;
+  if(navigator.share){
+    navigator.share({title:'QuizMania Score', text}).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(text).then(()=>toast('Score copied to clipboard! 📋','success')).catch(()=>toast('Share not supported on this browser','error'));
+  }
+}
+
+// ---- DAILY CHALLENGE ----
+function getDailySeed(){
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+function isDailyDone(){
+  if(!activeProfile) return false;
+  return ls('qm_daily_'+activeProfile.id) === getDailySeed();
+}
+function updateDailyBanner(){
+  const done = isDailyDone();
+  const badge = document.getElementById('daily-badge');
+  const sub = document.getElementById('daily-sub');
+  if(done){
+    badge.textContent = '✓ Done!';
+    badge.className = 'daily-badge daily-done';
+    sub.textContent = 'Come back tomorrow for a new challenge!';
+  } else {
+    badge.textContent = 'Play Now';
+    badge.className = 'daily-badge';
+    sub.textContent = '10 mixed questions — same for everyone today!';
+  }
+}
+async function startDailyChallenge(){
+  if(isDailyDone()){ toast('Already completed today! Come back tomorrow 🌅','info'); return; }
+  selectedTopic = 'General Knowledge';
+  quizMode = 'questions'; quizCount = 10; quizDiff = 'medium';
+  _prefetch = null;
+  document.querySelectorAll('.topic-card').forEach(c=>c.classList.remove('selected'));
+  showScreen('quiz');
+  document.getElementById('quiz-loading').style.display='block';
+  document.getElementById('quiz-content').style.display='none';
+  document.getElementById('quiz-topic-badge').textContent='⭐ Daily Challenge';
+  document.getElementById('quiz-score').textContent='0';
+  document.getElementById('timer-display').style.display='none';
+  qe={questions:[],idx:0,score:0,correct:0,timerInterval:null,timerLeft:0,
+    startTime:Date.now(),lifelineUsed:false,hintUsed:false,streak:0,bestStreak:0,
+    adaptDiff:'medium',answers:[],hintsOn:true,explainOn:true,voiceOn:false,isDaily:true};
+  try{
+    const qs = await generateQuestions('General Knowledge','medium',10,activeProfile?.age||'tweens');
+    qe.questions = qs;
+    document.getElementById('quiz-loading').style.display='none';
+    document.getElementById('quiz-content').style.display='block';
+    qe.startTime = Date.now();
+    showQuestion();
+  } catch(e){
+    document.getElementById('quiz-loading').innerHTML=`<div style="color:var(--red);text-align:center"><div style="font-size:2rem">❌</div><div>${e.message}</div><button class="btn btn-primary" onclick="showScreen('home')">Home</button></div>`;
+  }
+}
 
 // ---- TOGGLES ----
 function loadToggles(){
@@ -819,7 +989,8 @@ function showScreen(name){
   const s = document.getElementById(name+'-screen');
   if(s) s.classList.add('active');
   if(name==='history') renderHistory();
-  if(name==='home') updateHomeStats();
+  if(name==='home'){ updateHomeStats(); updateDailyBanner(); }
+  if(name==='leaderboard') renderLeaderboard();
 }
 
 function goHome(){
@@ -871,6 +1042,7 @@ function selectProfile(id){
   document.getElementById('chip-avatar').textContent = activeProfile.avatar;
   document.getElementById('chip-name').textContent = activeProfile.name;
   document.getElementById('history-btn').style.display='flex';
+  document.getElementById('lb-btn').style.display='flex';
   updateHomeStats();
   showScreen('home');
 }
@@ -879,6 +1051,7 @@ function switchProfile(){
   activeProfile = null;
   document.getElementById('profile-chip').style.display='none';
   document.getElementById('history-btn').style.display='none';
+  document.getElementById('lb-btn').style.display='none';
   renderProfilesScreen();
   showScreen('profiles');
 }
@@ -1154,7 +1327,19 @@ async function generateQuestions(topic, difficulty, count, age){
   }[age]||'young people';
 
   const isAtlas = topic==='World Atlas';
-  const prompt = isAtlas
+  const isFlag = topic==='Flag Quiz';
+
+  const prompt = isFlag
+    ? `Generate exactly ${count} flag quiz questions for ${ageDesc}. Difficulty: ${diffLabel}.
+Easy = very famous flags (USA, UK, France, Japan, Brazil, Canada, Australia).
+Medium = well-known flags (India, Germany, Italy, Mexico, South Africa, Argentina, China).
+Hard = tricky/similar-looking flags (Chad, Romania, Monaco, Indonesia, Poland, etc.).
+Each question shows a flag emoji and asks which country it belongs to.
+Previously asked (AVOID repeating): ${askedList.slice(-30).join(' | ')||'none'}.
+Return ONLY a JSON array — no markdown:
+[{"question":"Which country does this flag belong to?","flag":"🇫🇷","options":["France","Germany","Italy","Spain"],"answer":"France","hint":"This country is famous for the Eiffel Tower","explanation":"France's flag has three vertical stripes: blue, white, and red — called the Tricolore."}]
+"flag" must be a single country flag emoji. "answer" must exactly match one of the options.`
+    : isAtlas
     ? `Generate exactly ${count} geography/atlas multiple-choice questions for ${ageDesc}. Difficulty: ${diffLabel}.
 Previously asked (AVOID repeating): ${askedList.slice(-30).join(' | ')||'none'}.
 Return ONLY a JSON array:
@@ -1168,7 +1353,7 @@ Return ONLY a JSON array:
 "answer" must exactly match one of the options.`;
 
   const data = await callClaude({
-    model:'claude-haiku-4-5-20251001', max_tokens:2048,
+    model:'claude-haiku-4-5-20251001', max_tokens: count>20 ? 6000 : 2048,
     system:'You are a quiz question generator. Return ONLY valid JSON arrays. No markdown.',
     messages:[{role:'user',content:prompt}]
   });
@@ -1254,6 +1439,7 @@ function updateTimer(){
   const s=qe.timerLeft;
   d.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
   d.classList.toggle('danger',s<=15);
+  if(s<=10 && s>0) playSound('tick');
 }
 
 function showQuestion(){
@@ -1265,6 +1451,13 @@ function showQuestion(){
   document.getElementById('progress-label').textContent='Q '+(qe.idx+1)+' of '+(quizMode==='questions'?quizCount:'?');
   document.getElementById('progress-fill').style.width=quizMode==='questions'?((qe.idx/quizCount)*100)+'%':'0%';
   document.getElementById('diff-badge').textContent={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard',adaptive:'🧠 Adaptive'}[qe.adaptDiff]||'';
+
+  // Flag display
+  const flagEl=document.getElementById('flag-display');
+  if(q.flag){
+    flagEl.style.display='block';
+    document.getElementById('flag-emoji').textContent=q.flag;
+  } else { flagEl.style.display='none'; }
 
   // Map
   const mapEl=document.getElementById('map-container');
@@ -1315,7 +1508,7 @@ function pickAnswer(btn, idx){
     if(quizDiff==='adaptive'&&qe.answers.slice(-2).filter(a=>!a.isCorrect).length>=2){const lvls=['easy','medium','hard'];const i=lvls.indexOf(qe.adaptDiff);if(i>0)qe.adaptDiff=lvls[i-1];}
   }
 
-  qe.answers.push({question:q.question,options:q.options,correctAnswer:q.answer,playerAnswer:answer,isCorrect:correct,explanation:q.explanation||''});
+  qe.answers.push({question:q.question,flag:q.flag||null,options:q.options,correctAnswer:q.answer,playerAnswer:answer,isCorrect:correct,explanation:q.explanation||''});
 
   if(qe.explainOn&&q.explanation){
     const box=document.getElementById('explanation-box');
@@ -1374,11 +1567,13 @@ function confirmQuit(){
 
 // ---- AUDIO ----
 function playSound(type){
+  if(isMuted) return;
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
     const o=ctx.createOscillator(),g=ctx.createGain();
     o.connect(g);g.connect(ctx.destination);
     if(type==='correct'){o.frequency.setValueAtTime(523,ctx.currentTime);o.frequency.setValueAtTime(659,ctx.currentTime+0.1);o.frequency.setValueAtTime(784,ctx.currentTime+0.2);}
+    else if(type==='tick'){o.frequency.setValueAtTime(880,ctx.currentTime);g.gain.setValueAtTime(0.1,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.08);o.start(ctx.currentTime);o.stop(ctx.currentTime+0.08);return;}
     else{o.frequency.setValueAtTime(330,ctx.currentTime);o.frequency.setValueAtTime(220,ctx.currentTime+0.15);}
     g.gain.setValueAtTime(0.25,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.4);
     o.start(ctx.currentTime);o.stop(ctx.currentTime+0.4);
@@ -1415,6 +1610,7 @@ function endQuiz(){
 
   document.getElementById('review-items').innerHTML=qe.answers.map((a,i)=>`
     <div class="review-item ${a.isCorrect?'correct':'wrong'}">
+      ${a.flag?`<div style="font-size:2.5rem;text-align:center;margin-bottom:6px">${a.flag}</div>`:''}
       <div class="review-q">${i+1}. ${a.question}</div>
       <div class="review-answer">
         ${!a.isCorrect?`<span class="review-yours">You: ${a.playerAnswer}</span>`:''}
@@ -1431,6 +1627,10 @@ function endQuiz(){
     mode:quizMode==='timed'?quizTime+'s':quizCount+'q',score:qe.score,correct:qe.correct,
     totalQuestions:total,pct,timeTaken,bestStreak:qe.bestStreak,questions:qe.answers};
   window._lastQuizRec = rec; // store for replay button on results screen
+
+  if(qe.isDaily && activeProfile){
+    ls('qm_daily_'+activeProfile.id, getDailySeed());
+  }
 
   if(activeProfile){
     const hist=getHistory(activeProfile.id);
