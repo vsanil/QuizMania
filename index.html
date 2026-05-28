@@ -948,11 +948,16 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 <!-- ======== LEADERBOARD SCREEN ======== -->
 <div class="screen" id="leaderboard-screen">
   <div style="max-width:600px;margin:0 auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <h2 style="font-size:1.6rem;font-weight:900">🏆 Leaderboard</h2>
       <button class="btn btn-secondary" onclick="showScreen('home')">← Back</button>
     </div>
-    <p style="color:var(--text2);margin-bottom:20px;font-size:0.88rem">All-time rankings across all profiles.</p>
+    <!-- Tabs (global only shown when logged in) -->
+    <div style="display:flex;gap:8px;margin-bottom:18px">
+      <button id="lb-tab-global" class="pill" onclick="switchLbTab('global')">🌍 Global</button>
+      <button id="lb-tab-local" class="pill selected" onclick="switchLbTab('local')">📱 This Device</button>
+    </div>
+    <p id="lb-subtitle" style="color:var(--text2);margin-bottom:16px;font-size:0.85rem">Top players across all registered accounts.</p>
     <div id="lb-list"></div>
   </div>
 </div>
@@ -1239,12 +1244,37 @@ function loadMute(){
 }
 
 // ---- LEADERBOARD ----
+let _lbTab = 'global'; // 'global' | 'local'
+
+function switchLbTab(tab){
+  _lbTab = tab;
+  document.getElementById('lb-tab-global').classList.toggle('selected', tab==='global');
+  document.getElementById('lb-tab-local').classList.toggle('selected', tab==='local');
+  renderLeaderboard();
+}
+
 function renderLeaderboard(){
+  // Default to global if user is logged in, local otherwise
+  if(!authUser && _lbTab==='global') _lbTab = 'local';
+  // Show/hide global tab based on login state
+  document.getElementById('lb-tab-global').style.display = authUser ? '' : 'none';
+  document.getElementById('lb-tab-global').classList.toggle('selected', _lbTab==='global');
+  document.getElementById('lb-tab-local').classList.toggle('selected', _lbTab==='local');
+
+  if(_lbTab === 'local'){
+    renderLocalLeaderboard();
+  } else {
+    renderGlobalLeaderboard();
+  }
+}
+
+function renderLocalLeaderboard(){
+  document.getElementById('lb-subtitle').textContent = 'Rankings from profiles on this device.';
   const ranked = profiles.map(p => {
     const hist = getHistory(p.id);
     const avg = hist.length ? Math.round(hist.reduce((a,b)=>a+b.pct,0)/hist.length) : 0;
     const best = hist.length ? Math.max(...hist.map(h=>h.pct)) : 0;
-    return {...p, avg, best, quizzes: p.totalQuizzes||0};
+    return {...p, avg, best, quizzes: hist.length};
   }).sort((a,b) => b.avg - a.avg || b.quizzes - a.quizzes);
 
   const medals = ['🥇','🥈','🥉'];
@@ -1263,6 +1293,55 @@ function renderLeaderboard(){
       </div>
     </div>`).join('')
   : `<div class="empty-state"><div class="empty-icon">🏆</div><div>No quizzes played yet!</div></div>`;
+}
+
+async function renderGlobalLeaderboard(){
+  const list = document.getElementById('lb-list');
+  const subtitle = document.getElementById('lb-subtitle');
+  subtitle.textContent = 'Top players across all registered accounts — refreshed live.';
+  list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2)">
+    <div style="font-size:2rem;margin-bottom:10px">⏳</div>
+    <div style="font-weight:700">Loading global rankings…</div>
+  </div>`;
+
+  try {
+    const res = await fetch('/api/leaderboard');
+    if(!res.ok) throw new Error('Server error '+res.status);
+    const {players} = await res.json();
+
+    if(!players || !players.length){
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">🌍</div><div>No global scores yet — be the first!</div></div>`;
+      return;
+    }
+
+    const medals = ['🥇','🥈','🥉'];
+    const rankClass = ['gold','silver','bronze'];
+    const ageLbl = {kids:'🐣 Kids',tweens:'🧒 Tweens',teens:'🧑 Teens'};
+    const XP_LABELS = ['','Novice','Explorer','Challenger','Scholar','Expert','Master','Champion','Legend','Hero','Quiz God'];
+
+    list.innerHTML = players.map((p,i) => {
+      const isMe = authUser && p.username === authUser.username;
+      const levelBadge = p.level ? `<span style="background:rgba(124,58,237,0.25);color:var(--accent2);font-size:0.68rem;padding:2px 7px;border-radius:10px;font-weight:800">${XP_LABELS[p.level]||'Lv'+p.level}</span>` : '';
+      const meBadge = isMe ? `<span style="background:rgba(16,185,129,0.2);color:var(--green);font-size:0.68rem;padding:2px 7px;border-radius:10px;font-weight:800;margin-left:4px">YOU</span>` : '';
+      return `
+      <div class="lb-card" style="${isMe?'border-color:var(--green);background:rgba(16,185,129,0.06)':''}">
+        <div class="lb-rank ${rankClass[i]||''}">${medals[i]||'#'+(i+1)}</div>
+        <div class="lb-avatar">${p.avatar}</div>
+        <div class="lb-info">
+          <div class="lb-name">${p.name} ${levelBadge}${meBadge}</div>
+          <div class="lb-meta">${ageLbl[p.age]||''} · ${p.quizzes} quiz${p.quizzes===1?'':'zes'} · Best: ${p.best}%</div>
+        </div>
+        <div class="lb-score">
+          <div class="lb-score-num">${p.avg}%</div>
+          <div class="lb-score-label">Avg Score</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(err){
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div>Could not load global rankings.<br><small style="color:var(--text2)">${err.message}</small></div>
+      <button class="btn btn-secondary" style="margin-top:14px" onclick="renderGlobalLeaderboard()">Retry</button>
+    </div>`;
+  }
 }
 
 // ---- SHARE SCORE ----
@@ -1404,7 +1483,7 @@ function showScreen(name){
   if(s) s.classList.add('active');
   if(name==='history') renderHistory();
   if(name==='home'){ updateHomeStats(); updateDailyBanner(); }
-  if(name==='leaderboard') renderLeaderboard();
+  if(name==='leaderboard'){ _lbTab = authUser ? 'global' : 'local'; renderLeaderboard(); }
 }
 
 function goHome(){
