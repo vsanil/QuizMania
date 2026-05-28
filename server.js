@@ -257,6 +257,7 @@ app.get('/api/leaderboard', async (req, res) => {
           : 0;
         const best = history.length ? Math.max(...history.map(h => h.pct || 0)) : 0;
         const totalPoints = history.reduce((a, b) => a + (b.score || 0), 0);
+        const topicsCount = new Set(history.map(h => h.topic).filter(Boolean)).size;
         return {
           username: uname,
           name: profile.name || uname,
@@ -268,6 +269,7 @@ app.get('/api/leaderboard', async (req, res) => {
           avg,
           best,
           totalPoints,
+          topicsCount,
         };
       })
     );

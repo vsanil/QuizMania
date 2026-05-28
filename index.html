@@ -690,6 +690,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       <div class="stat-chip"><div class="stat-num" id="stat-avg">—</div><div class="stat-label">Avg Score</div></div>
       <div class="stat-chip"><div class="stat-num" id="stat-best-topic">—</div><div class="stat-label">Best Topic</div></div>
       <div class="stat-chip"><div class="stat-num" id="stat-streak">🔥0</div><div class="stat-label">Streak</div></div>
+      <div class="stat-chip" id="stat-rank-chip" style="display:none;cursor:pointer" onclick="showScreen('leaderboard')" title="View leaderboard"><div class="stat-num" id="stat-rank" style="color:var(--gold)">—</div><div class="stat-label">🌍 Global Rank</div></div>
     </div>
 
     <!-- Streak banner -->
@@ -953,9 +954,17 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       <button class="btn btn-secondary" onclick="showScreen('home')">← Back</button>
     </div>
     <!-- Tabs (global only shown when logged in) -->
-    <div style="display:flex;gap:8px;margin-bottom:18px">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
       <button id="lb-tab-global" class="pill" onclick="switchLbTab('global')">🌍 Global</button>
       <button id="lb-tab-local" class="pill selected" onclick="switchLbTab('local')">📱 This Device</button>
+      <button id="lb-refresh-btn" class="btn btn-secondary" onclick="refreshGlobalLeaderboard()" style="margin-left:auto;padding:6px 12px;font-size:0.8rem;display:none" title="Refresh rankings">🔄 Refresh</button>
+    </div>
+    <!-- Sort pills (global only) -->
+    <div id="lb-sort-row" style="display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:0.8rem;color:var(--text2);font-weight:700;align-self:center">Sort:</span>
+      <button id="lb-sort-avg" class="pill selected" onclick="switchLbSort('avg')" style="font-size:0.78rem;padding:5px 12px">📊 Avg Score</button>
+      <button id="lb-sort-best" class="pill" onclick="switchLbSort('best')" style="font-size:0.78rem;padding:5px 12px">🏅 Best Score</button>
+      <button id="lb-sort-quizzes" class="pill" onclick="switchLbSort('quizzes')" style="font-size:0.78rem;padding:5px 12px">🎯 Most Quizzes</button>
     </div>
     <p id="lb-subtitle" style="color:var(--text2);margin-bottom:16px;font-size:0.85rem">Top players across all registered accounts.</p>
     <div id="lb-list"></div>
@@ -1245,27 +1254,45 @@ function loadMute(){
 
 // ---- LEADERBOARD ----
 let _lbTab = 'global'; // 'global' | 'local'
+let _lbSort = 'avg';   // 'avg' | 'best' | 'quizzes'
+let _lbPlayers = [];   // cached global players
+let _myGlobalRank = null;
 
 function switchLbTab(tab){
   _lbTab = tab;
   document.getElementById('lb-tab-global').classList.toggle('selected', tab==='global');
   document.getElementById('lb-tab-local').classList.toggle('selected', tab==='local');
+  // Show/hide sort row and refresh button
+  const isGlobal = tab === 'global';
+  document.getElementById('lb-sort-row').style.display = isGlobal ? 'flex' : 'none';
+  document.getElementById('lb-refresh-btn').style.display = isGlobal ? '' : 'none';
   renderLeaderboard();
 }
 
+function switchLbSort(sort){
+  _lbSort = sort;
+  ['avg','best','quizzes'].forEach(s =>
+    document.getElementById('lb-sort-'+s).classList.toggle('selected', s===sort)
+  );
+  displayGlobalPlayers(); // re-sort cached data, no re-fetch
+}
+
+function refreshGlobalLeaderboard(){
+  _lbPlayers = [];
+  renderGlobalLeaderboard();
+}
+
 function renderLeaderboard(){
-  // Default to global if user is logged in, local otherwise
   if(!authUser && _lbTab==='global') _lbTab = 'local';
-  // Show/hide global tab based on login state
   document.getElementById('lb-tab-global').style.display = authUser ? '' : 'none';
   document.getElementById('lb-tab-global').classList.toggle('selected', _lbTab==='global');
   document.getElementById('lb-tab-local').classList.toggle('selected', _lbTab==='local');
+  const isGlobal = _lbTab === 'global';
+  document.getElementById('lb-sort-row').style.display = isGlobal ? 'flex' : 'none';
+  document.getElementById('lb-refresh-btn').style.display = isGlobal ? '' : 'none';
 
-  if(_lbTab === 'local'){
-    renderLocalLeaderboard();
-  } else {
-    renderGlobalLeaderboard();
-  }
+  if(isGlobal) renderGlobalLeaderboard();
+  else renderLocalLeaderboard();
 }
 
 function renderLocalLeaderboard(){
@@ -1297,8 +1324,11 @@ function renderLocalLeaderboard(){
 
 async function renderGlobalLeaderboard(){
   const list = document.getElementById('lb-list');
-  const subtitle = document.getElementById('lb-subtitle');
-  subtitle.textContent = 'Top players across all registered accounts — refreshed live.';
+  document.getElementById('lb-subtitle').textContent = 'Top players across all registered accounts — refreshed live.';
+
+  // Use cache if available
+  if(_lbPlayers.length){ displayGlobalPlayers(); return; }
+
   list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2)">
     <div style="font-size:2rem;margin-bottom:10px">⏳</div>
     <div style="font-weight:700">Loading global rankings…</div>
@@ -1308,39 +1338,75 @@ async function renderGlobalLeaderboard(){
     const res = await fetch('/api/leaderboard');
     if(!res.ok) throw new Error('Server error '+res.status);
     const {players} = await res.json();
-
     if(!players || !players.length){
       list.innerHTML = `<div class="empty-state"><div class="empty-icon">🌍</div><div>No global scores yet — be the first!</div></div>`;
       return;
     }
+    _lbPlayers = players;
 
-    const medals = ['🥇','🥈','🥉'];
-    const rankClass = ['gold','silver','bronze'];
-    const ageLbl = {kids:'🐣 Kids',tweens:'🧒 Tweens',teens:'🧑 Teens'};
-    const XP_LABELS = ['','Novice','Explorer','Challenger','Scholar','Expert','Master','Champion','Legend','Hero','Quiz God'];
+    // Cache my global rank (by avg score — default sort)
+    const myIdx = authUser ? players.findIndex(p => p.username === authUser.username) : -1;
+    _myGlobalRank = myIdx >= 0 ? myIdx + 1 : null;
+    updateHomeRankBadge();
 
-    list.innerHTML = players.map((p,i) => {
-      const isMe = authUser && p.username === authUser.username;
-      const levelBadge = p.level ? `<span style="background:rgba(124,58,237,0.25);color:var(--accent2);font-size:0.68rem;padding:2px 7px;border-radius:10px;font-weight:800">${XP_LABELS[p.level]||'Lv'+p.level}</span>` : '';
-      const meBadge = isMe ? `<span style="background:rgba(16,185,129,0.2);color:var(--green);font-size:0.68rem;padding:2px 7px;border-radius:10px;font-weight:800;margin-left:4px">YOU</span>` : '';
-      return `
-      <div class="lb-card" style="${isMe?'border-color:var(--green);background:rgba(16,185,129,0.06)':''}">
-        <div class="lb-rank ${rankClass[i]||''}">${medals[i]||'#'+(i+1)}</div>
-        <div class="lb-avatar">${p.avatar}</div>
-        <div class="lb-info">
-          <div class="lb-name">${p.name} ${levelBadge}${meBadge}</div>
-          <div class="lb-meta">${ageLbl[p.age]||''} · ${p.quizzes} quiz${p.quizzes===1?'':'zes'} · Best: ${p.best}%</div>
-        </div>
-        <div class="lb-score">
-          <div class="lb-score-num">${p.avg}%</div>
-          <div class="lb-score-label">Avg Score</div>
-        </div>
-      </div>`;
-    }).join('');
+    displayGlobalPlayers();
   } catch(err){
     list.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div>Could not load global rankings.<br><small style="color:var(--text2)">${err.message}</small></div>
-      <button class="btn btn-secondary" style="margin-top:14px" onclick="renderGlobalLeaderboard()">Retry</button>
+      <button class="btn btn-secondary" style="margin-top:14px" onclick="refreshGlobalLeaderboard()">Retry</button>
     </div>`;
+  }
+}
+
+function displayGlobalPlayers(){
+  const list = document.getElementById('lb-list');
+  if(!_lbPlayers.length) return;
+
+  // Sort a copy
+  const sorted = [..._lbPlayers].sort((a,b) => {
+    if(_lbSort==='best')    return b.best - a.best || b.avg - a.avg;
+    if(_lbSort==='quizzes') return b.quizzes - a.quizzes || b.avg - a.avg;
+    return b.avg - a.avg || b.quizzes - a.quizzes; // default: avg
+  });
+
+  const medals = ['🥇','🥈','🥉'];
+  const rankClass = ['gold','silver','bronze'];
+  const ageLbl = {kids:'🐣 Kids',tweens:'🧒 Tweens',teens:'🧑 Teens'};
+  const XP_LABELS = ['','Novice','Explorer','Challenger','Scholar','Expert','Master','Champion','Legend','Hero','Quiz God'];
+
+  list.innerHTML = sorted.map((p,i) => {
+    const isMe = authUser && p.username === authUser.username;
+    const levelBadge = p.level ? `<span style="background:rgba(124,58,237,0.25);color:var(--accent2);font-size:0.68rem;padding:2px 7px;border-radius:10px;font-weight:800">${XP_LABELS[p.level]||'Lv'+p.level}</span>` : '';
+    const meBadge = isMe ? `<span style="background:rgba(16,185,129,0.2);color:var(--green);font-size:0.68rem;padding:2px 7px;border-radius:10px;font-weight:800;margin-left:4px">YOU</span>` : '';
+    const pts = p.totalPoints ? `✨ ${p.totalPoints.toLocaleString()} pts` : '';
+    const topics = p.topicsCount ? `📚 ${p.topicsCount} topic${p.topicsCount===1?'':'s'}` : '';
+    const secondRow = [ageLbl[p.age]||'', `🎯 ${p.quizzes} quiz${p.quizzes===1?'':'zes'}`, `🏅 Best: ${p.best}%`, pts, topics].filter(Boolean).join(' · ');
+    const scoreLabel = _lbSort==='best' ? 'Best Score' : _lbSort==='quizzes' ? 'Quizzes' : 'Avg Score';
+    const scoreVal = _lbSort==='best' ? p.best+'%' : _lbSort==='quizzes' ? p.quizzes : p.avg+'%';
+    return `
+    <div class="lb-card" style="${isMe?'border-color:var(--green);background:rgba(16,185,129,0.06)':''}">
+      <div class="lb-rank ${rankClass[i]||''}">${medals[i]||'#'+(i+1)}</div>
+      <div class="lb-avatar">${p.avatar}</div>
+      <div class="lb-info">
+        <div class="lb-name">${p.name} ${levelBadge}${meBadge}</div>
+        <div class="lb-meta">${secondRow}</div>
+      </div>
+      <div class="lb-score">
+        <div class="lb-score-num">${scoreVal}</div>
+        <div class="lb-score-label">${scoreLabel}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateHomeRankBadge(){
+  const chip = document.getElementById('stat-rank-chip');
+  const num  = document.getElementById('stat-rank');
+  if(!chip || !num) return;
+  if(_myGlobalRank && authUser){
+    num.textContent = '#'+_myGlobalRank;
+    chip.style.display = '';
+  } else {
+    chip.style.display = 'none';
   }
 }
 
@@ -1700,6 +1766,8 @@ function updateHomeStats(){
   updateXPBar();
   // Topic recommendations
   renderRecommendations();
+  // Global rank badge
+  updateHomeRankBadge();
 }
 
 function renderStrengthBars(topics){
