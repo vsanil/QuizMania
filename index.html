@@ -8,6 +8,7 @@
 <meta property="og:title" content="QuizMania ⚡"/>
 <meta property="og:description" content="AI-powered trivia for kids & teens — create a profile and play!"/>
 <meta name="theme-color" content="#7c3aed"/>
+<link rel="manifest" href="/manifest.json"/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -368,6 +369,49 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
   padding:4px 10px;border-radius:20px;white-space:nowrap;}
 .daily-done{background:var(--green);color:#fff;}
 
+/* ============ XP & LEVELS ============ */
+.xp-bar-wrap{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.level-badge{background:linear-gradient(135deg,var(--gold),#f97316);color:#000;font-weight:900;font-size:0.72rem;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.xp-track{flex:1;background:var(--card);border-radius:20px;height:8px;overflow:hidden;}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--gold),#f97316);border-radius:20px;transition:width 0.8s ease;}
+.xp-label{font-size:0.72rem;color:var(--text2);font-weight:700;white-space:nowrap;}
+
+/* ============ COMBO ============ */
+.combo-badge{position:absolute;top:12px;left:12px;background:linear-gradient(135deg,#f97316,var(--red));color:#fff;
+  font-weight:900;font-size:0.85rem;padding:5px 12px;border-radius:20px;animation:comboPop 0.3s cubic-bezier(0.34,1.56,0.64,1);z-index:5;}
+@keyframes comboPop{from{transform:scale(0.5)}to{transform:scale(1)}}
+
+/* ============ PER-QUESTION TIMER ============ */
+.q-timer-ring{width:44px;height:44px;flex-shrink:0;}
+.q-timer-ring circle{fill:none;stroke-width:4;stroke-linecap:round;}
+.q-timer-track{stroke:var(--card2);}
+.q-timer-prog{stroke:var(--accent);transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 0.9s linear,stroke 0.3s;}
+.q-timer-text{font-size:0.7rem;font-weight:900;fill:var(--text);}
+
+/* ============ THEMED PACKS ============ */
+.packs-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.pack-chip{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:7px 14px;
+  cursor:pointer;font-weight:700;font-size:0.8rem;transition:var(--transition);white-space:nowrap;}
+.pack-chip:hover{border-color:var(--accent);background:rgba(124,58,237,0.12);}
+
+/* ============ RECOMMENDATIONS ============ */
+.reco-section{margin-bottom:20px;}
+.reco-row{display:flex;gap:8px;flex-wrap:wrap;}
+.reco-chip{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;
+  padding:8px 14px;cursor:pointer;font-size:0.8rem;font-weight:700;color:var(--red);transition:var(--transition);}
+.reco-chip:hover{background:rgba(239,68,68,0.2);}
+
+/* ============ CHALLENGE BANNER ============ */
+.challenge-banner{background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(168,85,247,0.1));
+  border:1px solid var(--blue);border-radius:16px;padding:16px 20px;margin-bottom:20px;display:none;}
+.challenge-vs{font-size:1.8rem;font-weight:900;color:var(--blue);}
+
+/* ============ LEVEL UP MODAL ============ */
+.levelup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s;}
+.levelup-box{background:var(--card);border:2px solid var(--gold);border-radius:24px;padding:36px 32px;text-align:center;max-width:320px;box-shadow:0 0 40px rgba(245,158,11,0.3);}
+.levelup-icon{font-size:4rem;animation:badgeIn 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+.levelup-title{font-size:1.5rem;font-weight:900;color:var(--gold);margin:10px 0 4px;}
+
 /* ============ RESPONSIVE ============ */
 
 /* Tablet (≤768px) */
@@ -657,6 +701,25 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       </div>
     </div>
 
+    <!-- Challenge banner (appears when opened via challenge link) -->
+    <div class="challenge-banner" id="challenge-banner">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div class="challenge-vs" id="challenge-vs">⚔️</div>
+        <div style="flex:1">
+          <div style="font-weight:900;font-size:1rem" id="challenge-title">Beat their score!</div>
+          <div style="font-size:0.8rem;color:var(--text2)" id="challenge-sub">Play the same topic and beat their score to win.</div>
+        </div>
+        <button class="btn btn-primary" onclick="acceptChallenge()">Accept ⚡</button>
+      </div>
+    </div>
+
+    <!-- XP Bar -->
+    <div class="xp-bar-wrap" id="xp-bar-wrap" style="display:none">
+      <div class="level-badge" id="level-badge">Lv 1</div>
+      <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+      <div class="xp-label" id="xp-label">0 / 100 XP</div>
+    </div>
+
     <!-- Daily Challenge -->
     <div class="daily-banner" id="daily-banner" onclick="startDailyChallenge()">
       <div class="daily-icon">⭐</div>
@@ -667,19 +730,39 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       <div class="daily-badge" id="daily-badge">Play Now</div>
     </div>
 
+    <!-- Recommendations -->
+    <div class="reco-section" id="reco-section" style="display:none">
+      <div class="section-title">💪 Practice These</div>
+      <div class="reco-row" id="reco-row"></div>
+    </div>
+
     <!-- TOPIC GRID — main action -->
     <div class="section-title">🎯 Choose a Topic</div>
     <div class="topic-grid" id="topic-grid"></div>
 
+    <!-- Themed packs -->
+    <div class="section-title" style="margin-top:4px">🎮 Fun Packs</div>
+    <div class="packs-row">
+      <div class="pack-chip" onclick="usePack('Harry Potter')">🧙 Harry Potter</div>
+      <div class="pack-chip" onclick="usePack('Minecraft')">⛏️ Minecraft</div>
+      <div class="pack-chip" onclick="usePack('Marvel Superheroes')">🦸 Marvel</div>
+      <div class="pack-chip" onclick="usePack('Disney Movies')">🏰 Disney</div>
+      <div class="pack-chip" onclick="usePack('Premier League Football')">⚽ Premier League</div>
+      <div class="pack-chip" onclick="usePack('Pokémon')">🎮 Pokémon</div>
+      <div class="pack-chip" onclick="usePack('Taylor Swift')">🎤 Taylor Swift</div>
+      <div class="pack-chip" onclick="usePack('The Olympics')">🏅 Olympics</div>
+    </div>
+
     <!-- Custom topic -->
     <div class="custom-row">
-      <input class="form-input" id="custom-topic-input" placeholder="💡 Or type any topic… Harry Potter, Formula 1, Minecraft…"/>
+      <input class="form-input" id="custom-topic-input" placeholder="💡 Or type any topic… Formula 1, Roblox, BTS…"/>
       <button class="btn btn-secondary" onclick="useCustomTopic()">+ Use This</button>
     </div>
 
     <!-- Start -->
     <div class="home-start-row">
       <button class="btn btn-primary btn-lg" onclick="goToSettings()">▶ Start Quiz</button>
+      <button class="btn btn-secondary btn-lg" onclick="quickPlay()">🎲 Quick Play</button>
       <button class="btn btn-secondary btn-lg" onclick="showScreen('history')">📜 My History</button>
     </div>
 
@@ -709,6 +792,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
         <div class="pill-row" style="margin-bottom:14px">
           <div class="pill selected" data-mode="questions" onclick="selectMode(this)">📝 Questions</div>
           <div class="pill" data-mode="timed" onclick="selectMode(this)">⏱️ Timed</div>
+          <div class="pill" data-mode="truefalse" onclick="selectMode(this)">✅ True/False</div>
         </div>
         <div id="q-count-section">
           <div class="form-label" style="margin-bottom:7px">How many?</div>
@@ -761,6 +845,17 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       </div>
 
       <div class="settings-card">
+        <h3>⏱ Per-Question Timer</h3>
+        <div class="pill-row">
+          <div class="pill selected" data-qtimer="0" onclick="selectQTimer(this)">Off</div>
+          <div class="pill" data-qtimer="10" onclick="selectQTimer(this)">10s</div>
+          <div class="pill" data-qtimer="15" onclick="selectQTimer(this)">15s</div>
+          <div class="pill" data-qtimer="30" onclick="selectQTimer(this)">30s</div>
+        </div>
+        <div style="font-size:0.75rem;color:var(--text2);margin-top:8px;line-height:1.5">Countdown per question — times up = wrong answer!</div>
+      </div>
+
+      <div class="settings-card">
         <h3>About Adaptive</h3>
         <div style="font-size:0.8rem;color:var(--text2);line-height:1.6">Difficulty auto-adjusts during the quiz — 2 right in a row = harder, 2 wrong = easier. Keeps it perfectly challenging!</div>
       </div>
@@ -791,7 +886,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
     </div>
     <div class="loading-box" id="quiz-loading">
       <div class="spinner"></div>
-      <div style="color:var(--text2);font-size:0.88rem;font-weight:600;margin-bottom:10px">✨ Claude is crafting your questions…</div>
+      <div style="color:var(--text2);font-size:0.88rem;font-weight:600;margin-bottom:10px">✨ Loading your questions…</div>
       <div class="loading-dots"><span></span><span></span><span></span></div>
     </div>
     <div id="quiz-content" style="display:none">
@@ -809,6 +904,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       <div class="quiz-actions">
         <button class="lifeline-btn" id="lifeline-btn" onclick="useFiftyFifty()">💡 50:50</button>
         <button class="lifeline-btn" id="claude-hint-btn" onclick="askClaudeHint()" style="border-color:var(--blue);color:var(--blue)">🤖 Hint</button>
+        <div id="q-timer-wrap" style="display:none;margin-left:8px">
+          <svg class="q-timer-ring" viewBox="0 0 44 44">
+            <circle class="q-timer-track" cx="22" cy="22" r="18"/>
+            <circle class="q-timer-prog" id="q-timer-prog" cx="22" cy="22" r="18" stroke-dasharray="113" stroke-dashoffset="0"/>
+            <text class="q-timer-text" x="22" y="26" text-anchor="middle" id="q-timer-text">15</text>
+          </svg>
+        </div>
         <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" style="margin-left:auto;display:none">Next →</button>
       </div>
     </div>
@@ -833,6 +935,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       <button class="btn btn-primary btn-lg" onclick="playAgainFresh()">🔄 Fresh Questions</button>
       <button class="btn btn-secondary btn-lg" onclick="replayExact()">📼 Replay</button>
       <button class="btn btn-secondary" onclick="shareScore()">📤 Share</button>
+      <button class="btn btn-secondary" onclick="challengeFriend()">⚔️ Challenge</button>
       <button class="btn btn-secondary" onclick="showScreen('home')">🏠 Home</button>
     </div>
     <div class="review-list">
@@ -912,7 +1015,8 @@ let quizTime = 90;
 let quizDiff = 'medium';
 let editingProfileId = null;
 let replayMode = false;
-let _prefetch = null;       // pre-fetched questions promise
+let _prefetch = null;         // promise: first 2 questions (fast)
+let _prefetchRemainder = null;// promise: remaining questions (background)
 
 let authUser = null;        // { username, passwordHash } when logged in
 
@@ -946,6 +1050,7 @@ window.addEventListener('load', async () => {
     // Credentials invalid or server down — clear and show auth
     localStorage.removeItem('qm_auth');
   }
+  checkChallenge(); // Parse URL hash for challenge links
   renderProfilesScreen();
   showScreen('auth');
 });
@@ -1161,14 +1266,42 @@ function renderLeaderboard(){
 
 // ---- SHARE SCORE ----
 function shareScore(){
-  const rec = window._lastQuizRec;
+  const rec=window._lastQuizRec;
   if(!rec) return;
-  const badge = rec.pct>=90?'🥇':rec.pct>=70?'🥈':rec.pct>=50?'🥉':'💪';
-  const text = `${badge} I scored ${rec.pct}% on ${rec.topic} in QuizMania!\n${rec.correct}/${rec.totalQuestions} correct · ${rec.timeTaken}s\nPlay at quizmania.onrender.com ⚡`;
-  if(navigator.share){
-    navigator.share({title:'QuizMania Score', text}).catch(()=>{});
-  } else {
-    navigator.clipboard?.writeText(text).then(()=>toast('Score copied to clipboard! 📋','success')).catch(()=>toast('Share not supported on this browser','error'));
+  const badge=rec.pct>=90?'🥇':rec.pct>=70?'🥈':rec.pct>=50?'🥉':'💪';
+  const shareText=`${badge} I scored ${rec.pct}% on ${rec.topic} in QuizMania!\n${rec.correct}/${rec.totalQuestions} correct · ${rec.timeTaken}s\nPlay at quizmania.onrender.com ⚡`;
+
+  // Try canvas share card
+  try{
+    const canvas=document.createElement('canvas');
+    canvas.width=600; canvas.height=320;
+    const ctx=canvas.getContext('2d');
+    const bg=ctx.createLinearGradient(0,0,600,320);
+    bg.addColorStop(0,'#0f0c29'); bg.addColorStop(1,'#1a1744');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,600,320);
+    ctx.fillStyle='#7c3aed'; ctx.fillRect(0,0,600,6);
+    ctx.textAlign='center';
+    ctx.fillStyle='#a855f7'; ctx.font='bold 26px Arial';
+    ctx.fillText('⚡ QuizMania',300,46);
+    ctx.font='64px Arial'; ctx.fillText(badge,300,120);
+    ctx.fillStyle='#f1f5f9'; ctx.font='bold 50px Arial';
+    ctx.fillText(rec.pct+'%',300,175);
+    ctx.fillStyle='#94a3b8'; ctx.font='22px Arial';
+    ctx.fillText(rec.topic,300,210);
+    ctx.fillStyle='#f1f5f9'; ctx.font='20px Arial';
+    ctx.fillText(rec.correct+'/'+rec.totalQuestions+' correct  ·  '+rec.timeTaken+'s',300,245);
+    ctx.fillStyle='#7c3aed'; ctx.font='17px Arial';
+    ctx.fillText('quizmania.onrender.com',300,285);
+    canvas.toBlob(async blob=>{
+      if(navigator.share&&blob&&navigator.canShare&&navigator.canShare({files:[new File([blob],'qm.png',{type:'image/png'})]})){
+        try{ await navigator.share({title:'QuizMania Score',text:shareText,files:[new File([blob],'quizmania.png',{type:'image/png'})]}); return; }catch(e){}
+      }
+      if(navigator.share){ navigator.share({title:'QuizMania Score',text:shareText}).catch(()=>{}); }
+      else { navigator.clipboard?.writeText(shareText).then(()=>toast('Score copied! 📋','success')).catch(()=>{}); }
+    },'image/png');
+  }catch(e){
+    if(navigator.share){ navigator.share({title:'QuizMania Score',text:shareText}).catch(()=>{}); }
+    else { navigator.clipboard?.writeText(shareText).then(()=>toast('Score copied! 📋','success')).catch(()=>{}); }
   }
 }
 
@@ -1199,7 +1332,7 @@ async function startDailyChallenge(){
   if(isDailyDone()){ toast('Already completed today! Come back tomorrow 🌅','info'); return; }
   selectedTopic = 'General Knowledge';
   quizMode = 'questions'; quizCount = 10; quizDiff = 'medium';
-  _prefetch = null;
+  _prefetch = null; _prefetchRemainder = null;
   document.querySelectorAll('.topic-card').forEach(c=>c.classList.remove('selected'));
   showScreen('quiz');
   document.getElementById('quiz-loading').style.display='block';
@@ -1209,7 +1342,7 @@ async function startDailyChallenge(){
   document.getElementById('timer-display').style.display='none';
   qe={questions:[],idx:0,score:0,correct:0,timerInterval:null,timerLeft:0,
     startTime:Date.now(),lifelineUsed:false,hintUsed:false,streak:0,bestStreak:0,
-    adaptDiff:'medium',answers:[],hintsOn:true,explainOn:true,voiceOn:false,isDaily:true};
+    combo:0,adaptDiff:'medium',answers:[],hintsOn:true,explainOn:true,voiceOn:false,isDaily:true};
   try{
     const qs = await generateQuestions('General Knowledge','medium',10,activeProfile?.age||'tweens');
     qe.questions = qs;
@@ -1483,6 +1616,10 @@ function updateHomeStats(){
 
   // Achievements
   renderAchievements();
+  // XP bar
+  updateXPBar();
+  // Topic recommendations
+  renderRecommendations();
 }
 
 function renderStrengthBars(topics){
@@ -1553,11 +1690,20 @@ function goToSettings(){
   const icon = TOPICS.find(t=>t.id===selectedTopic)?.icon||'✏️';
   document.getElementById('settings-topic-badge').textContent = icon+' '+selectedTopic;
   showScreen('settings');
-  // Pre-fetch questions in the background while user picks settings
+  // Pre-fetch: first 2 questions fast, rest in background
   _prefetch = null;
+  _prefetchRemainder = null;
   const n = quizMode==='timed' ? 50 : quizCount;
-  _prefetch = generateQuestions(selectedTopic, quizDiff, n, activeProfile?.age||'tweens')
-    .catch(()=>{ _prefetch=null; }); // silently discard if settings change
+  const QUICK = Math.min(2, n);
+  _prefetch = generateQuestions(selectedTopic, quizDiff, QUICK, activeProfile?.age||'tweens')
+    .catch(()=>{ _prefetch=null; });
+  if(n > QUICK){
+    _prefetchRemainder = _prefetch
+      .then(firstQs => firstQs
+        ? generateQuestions(selectedTopic, quizDiff, n - QUICK, activeProfile?.age||'tweens')
+        : [])
+      .catch(()=>[]);
+  }
 }
 
 // ---- SETTINGS ----
@@ -1565,9 +1711,10 @@ function selectMode(el){
   document.querySelectorAll('[data-mode]').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
   quizMode=el.dataset.mode;
-  document.getElementById('q-count-section').style.display=quizMode==='questions'?'block':'none';
+  const showCount = quizMode==='questions'||quizMode==='truefalse';
+  document.getElementById('q-count-section').style.display=showCount?'block':'none';
   document.getElementById('q-time-section').style.display=quizMode==='timed'?'block':'none';
-  _prefetch=null; // settings changed, invalidate prefetch
+  _prefetch=null; _prefetchRemainder=null;
 }
 function selectCount(el){
   document.querySelectorAll('[data-count]').forEach(p=>p.classList.remove('selected'));
@@ -1614,8 +1761,15 @@ async function generateQuestions(topic, difficulty, count, age){
 
   const isAtlas = topic==='World Atlas';
   const isFlag = topic==='Flag Quiz';
+  const isTF = quizMode==='truefalse';
 
-  const prompt = isFlag
+  const prompt = isTF
+    ? `Generate exactly ${count} true-or-false quiz questions about "${topic}" for ${ageDesc}. Difficulty: ${diffLabel}.
+Previously asked (AVOID repeating): ${askedList.slice(-30).join(' | ')||'none'}.
+Return ONLY a JSON array — no markdown:
+[{"question":"...a clear statement...","options":["True","False"],"answer":"True","hint":"...","explanation":"..."}]
+Each question should be a factual statement that is clearly True or False. "answer" must be exactly "True" or "False".`
+    : isFlag
     ? `Generate exactly ${count} flag quiz questions for ${ageDesc}. Difficulty: ${diffLabel}.
 Easy = very famous flags (USA, UK, France, Japan, Brazil, Canada, Australia).
 Medium = well-known flags (India, Germany, Italy, Mexico, South Africa, Argentina, China).
@@ -1671,7 +1825,7 @@ async function startQuiz(replayQs=null){
 
   qe={questions:[],idx:0,score:0,correct:0,timerInterval:null,timerLeft:0,
      startTime:Date.now(),lifelineUsed:false,hintUsed:false,streak:0,bestStreak:0,
-     adaptDiff:quizDiff==='adaptive'?'medium':quizDiff,answers:[],hintsOn,explainOn,voiceOn};
+     combo:0,adaptDiff:quizDiff==='adaptive'?'medium':quizDiff,answers:[],hintsOn,explainOn,voiceOn};
 
   showScreen('quiz');
   document.getElementById('quiz-loading').style.display='block';
@@ -1689,15 +1843,31 @@ async function startQuiz(replayQs=null){
   }
 
   try{
+    const age = activeProfile?.age||'tweens';
     if(replayQs){ qe.questions=replayQs; }
     else if(_prefetch){
-      // Use pre-fetched questions (generated while user was on settings screen)
+      // First 2 already pre-fetched — instant start
       qe.questions = await _prefetch;
       _prefetch = null;
+      // Pipe remaining questions in background
+      if(_prefetchRemainder){
+        const rem = _prefetchRemainder;
+        _prefetchRemainder = null;
+        qe._morePromise = rem.then(more=>{
+          if(more?.length) qe.questions=[...qe.questions,...more];
+          qe._morePromise=null;
+        }).catch(()=>{ qe._morePromise=null; });
+      }
     } else {
-      // Fallback: generate now
+      // No prefetch — load 2 fast, rest in background
       const n = quizMode==='timed' ? 50 : quizCount;
-      qe.questions = await generateQuestions(selectedTopic,quizDiff,n,activeProfile?.age||'tweens');
+      const QUICK = Math.min(2, n);
+      qe.questions = await generateQuestions(selectedTopic,quizDiff,QUICK,age);
+      if(n > QUICK){
+        qe._morePromise = generateQuestions(selectedTopic,quizDiff,n-QUICK,age)
+          .then(more=>{ if(more?.length) qe.questions=[...qe.questions,...more]; qe._morePromise=null; })
+          .catch(()=>{ qe._morePromise=null; });
+      }
     }
     document.getElementById('quiz-loading').style.display='none';
     document.getElementById('quiz-content').style.display='block';
@@ -1730,7 +1900,7 @@ function updateTimer(){
 
 function showQuestion(){
   const q=qe.questions[qe.idx];
-  if(!q||(quizMode==='questions'&&qe.idx>=quizCount)){endQuiz();return;}
+  if(!q||((quizMode==='questions'||quizMode==='truefalse')&&qe.idx>=quizCount)){endQuiz();return;}
 
   document.getElementById('question-num').textContent='Question '+(qe.idx+1)+(replayMode?' 📼':'');
   document.getElementById('question-text').textContent=q.question;
@@ -1769,9 +1939,11 @@ function showQuestion(){
   document.getElementById('claude-hint-btn').disabled=qe.hintUsed;
 
   if(qe.voiceOn) speak(q.question);
+  startPerQuestionTimer();
 }
 
 function pickAnswer(btn, idx){
+  clearPerQuestionTimer();
   const q=qe.questions[qe.idx];
   const answer = q.options[idx];
   const correct = answer === q.answer;
@@ -1781,16 +1953,26 @@ function pickAnswer(btn, idx){
     if(q.options[parseInt(b.dataset.idx)]===q.answer) b.classList.add('correct');
   });
   document.getElementById('question-card').classList.add(correct?'correct':'wrong');
+  // Remove any existing combo badge
+  document.querySelector('.combo-badge')?.remove();
 
   if(correct){
+    qe.combo=(qe.combo||0)+1;
     const pts=getPoints();
     qe.score+=pts; qe.correct++; qe.streak++; qe.bestStreak=Math.max(qe.bestStreak,qe.streak);
     document.getElementById('quiz-score').textContent=qe.score;
-    showPop('+'+pts+' pts');
+    const multLabel=qe.combo>=5?' ×2':qe.combo>=3?' ×1.5':'';
+    showPop('+'+pts+' pts'+multLabel);
+    if(qe.combo>=3){
+      const badge=document.createElement('div');
+      badge.className='combo-badge';
+      badge.textContent='🔥 '+qe.combo+'x Combo!';
+      document.getElementById('question-card').appendChild(badge);
+    }
     playSound('correct');
     if(quizDiff==='adaptive'&&qe.streak>=2){const lvls=['easy','medium','hard'];const i=lvls.indexOf(qe.adaptDiff);if(i<2)qe.adaptDiff=lvls[i+1];}
   }else{
-    qe.streak=0; playSound('wrong');
+    qe.combo=0; qe.streak=0; playSound('wrong');
     if(quizDiff==='adaptive'&&qe.answers.slice(-2).filter(a=>!a.isCorrect).length>=2){const lvls=['easy','medium','hard'];const i=lvls.indexOf(qe.adaptDiff);if(i>0)qe.adaptDiff=lvls[i-1];}
   }
 
@@ -1805,7 +1987,12 @@ function pickAnswer(btn, idx){
   if(qe.voiceOn) speak(correct?'Correct!':'Incorrect. The answer was '+q.answer);
 }
 
-function getPoints(){ return {easy:5,medium:10,hard:15}[qe.adaptDiff]||10; }
+function getPoints(){
+  const base={easy:5,medium:10,hard:15}[qe.adaptDiff]||10;
+  const combo=qe.combo||0;
+  const mult=combo>=5?2:combo>=3?1.5:1;
+  return Math.round(base*mult);
+}
 
 function showPop(text){
   const p=document.createElement('div');
@@ -1814,7 +2001,22 @@ function showPop(text){
   setTimeout(()=>p.remove(),900);
 }
 
-function nextQuestion(){ qe.idx++; showQuestion(); }
+async function nextQuestion(){
+  qe.idx++;
+  // If next question isn't loaded yet, wait for background fetch
+  if(qe.idx >= qe.questions.length && qe._morePromise){
+    document.getElementById('quiz-content').style.display='none';
+    document.getElementById('quiz-loading').style.display='block';
+    document.getElementById('quiz-loading').innerHTML=`
+      <div class="spinner"></div>
+      <div style="color:var(--text2);font-size:0.88rem;font-weight:600;margin-bottom:10px">⏳ Loading next questions…</div>
+      <div class="loading-dots"><span></span><span></span><span></span></div>`;
+    await qe._morePromise;
+    document.getElementById('quiz-loading').style.display='none';
+    document.getElementById('quiz-content').style.display='block';
+  }
+  showQuestion();
+}
 
 function useFiftyFifty(){
   if(qe.lifelineUsed) return;
@@ -1875,6 +2077,7 @@ function speak(text){
 // ---- END QUIZ ----
 function endQuiz(){
   clearInterval(qe.timerInterval);
+  clearPerQuestionTimer();
   const total=qe.answers.length||qe.idx;
   const pct=total>0?Math.round((qe.correct/total)*100):0;
   const timeTaken=Math.round((Date.now()-qe.startTime)/1000);
@@ -1907,6 +2110,16 @@ function endQuiz(){
 
   showScreen('results');
   if(pct>=70) launchConfetti();
+
+  // Award XP
+  if(activeProfile) awardXP(qe.score, pct);
+
+  // Check challenge result
+  if(qe._challengeTarget!==undefined){
+    if(qe.score>qe._challengeTarget) toast('🏆 You beat the challenge! Score: '+qe.score+' vs '+qe._challengeTarget,'success');
+    else toast('💪 Good try! Score: '+qe.score+' vs '+qe._challengeTarget+' — keep practicing!','info');
+    window._pendingChallenge=null;
+  }
 
   // Save — store the completed quiz record
   const rec={id:'q'+Date.now(),date:new Date().toISOString(),topic:selectedTopic,difficulty:quizDiff,
@@ -2122,6 +2335,234 @@ function launchConfetti(){
   s.textContent='@keyframes cf{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}';
   document.head.appendChild(s);
   setTimeout(()=>c.innerHTML='',6000);
+}
+
+// ===== QUICK PLAY =====
+function quickPlay(){
+  if(!activeProfile){ toast('Select a profile first!','error'); return; }
+  const r=TOPICS[Math.floor(Math.random()*TOPICS.length)];
+  selectedTopic=r.id;
+  quizMode='questions'; quizCount=10; quizDiff='medium';
+  _prefetch=null; _prefetchRemainder=null;
+  toast('🎲 Random: '+r.icon+' '+r.name+'!','info');
+  startQuiz();
+}
+
+// ===== FUN PACKS =====
+function usePack(topic){
+  if(!activeProfile){ toast('Select a profile first!','error'); return; }
+  selectedTopic=topic;
+  document.querySelectorAll('.topic-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('custom-topic-input').value=topic;
+  document.getElementById('home-sub').textContent='🎮 '+topic+' selected!';
+  const icon=TOPICS.find(t=>t.id===topic)?.icon||'🎮';
+  document.getElementById('settings-topic-badge').textContent=icon+' '+topic;
+  _prefetch=null; _prefetchRemainder=null;
+  const n=quizMode==='timed'?50:quizCount;
+  const QUICK=Math.min(2,n);
+  _prefetch=generateQuestions(topic,quizDiff,QUICK,activeProfile?.age||'tweens').catch(()=>{_prefetch=null;});
+  if(n>QUICK){
+    _prefetchRemainder=_prefetch.then(fq=>fq?generateQuestions(topic,quizDiff,n-QUICK,activeProfile?.age||'tweens'):[]).catch(()=>[]);
+  }
+  showScreen('settings');
+  toast('Pack: '+topic+' 🎮','info');
+}
+
+// ===== PER-QUESTION TIMER =====
+let qTimerSec=0;
+let _qTimerInterval=null;
+
+function selectQTimer(el){
+  document.querySelectorAll('[data-qtimer]').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  qTimerSec=parseInt(el.dataset.qtimer);
+  _prefetch=null;
+}
+
+function startPerQuestionTimer(){
+  clearPerQuestionTimer();
+  if(!qTimerSec) return;
+  const wrap=document.getElementById('q-timer-wrap');
+  const prog=document.getElementById('q-timer-prog');
+  const txt=document.getElementById('q-timer-text');
+  const circ=2*Math.PI*18; // ~113.1
+  wrap.style.display='block';
+  let left=qTimerSec;
+  prog.style.strokeDashoffset='0';
+  prog.style.stroke='var(--accent)';
+  txt.textContent=left;
+  _qTimerInterval=setInterval(()=>{
+    left--;
+    txt.textContent=left;
+    prog.style.strokeDashoffset=circ*(1-left/qTimerSec);
+    prog.style.stroke=left<=5?'#ef4444':'var(--accent)';
+    if(left<=0){ clearPerQuestionTimer(); autoTimeUp(); }
+  },1000);
+}
+
+function clearPerQuestionTimer(){
+  if(_qTimerInterval){ clearInterval(_qTimerInterval); _qTimerInterval=null; }
+  const wrap=document.getElementById('q-timer-wrap');
+  if(wrap) wrap.style.display='none';
+}
+
+function autoTimeUp(){
+  const q=qe.questions[qe.idx];
+  if(!q||document.getElementById('next-btn').style.display==='flex') return;
+  document.querySelectorAll('.option-btn').forEach(b=>{
+    b.disabled=true;
+    if(q.options[parseInt(b.dataset.idx)]===q.answer) b.classList.add('correct');
+  });
+  document.getElementById('question-card').classList.add('wrong');
+  qe.combo=0; qe.streak=0;
+  qe.answers.push({question:q.question,flag:q.flag||null,options:q.options,
+    correctAnswer:q.answer,playerAnswer:'⏰ Time Up',isCorrect:false,explanation:q.explanation||''});
+  if(qe.explainOn&&q.explanation){
+    const box=document.getElementById('explanation-box');
+    box.textContent='💡 '+q.explanation; box.classList.add('show');
+  }
+  toast('⏰ Time up!','error');
+  playSound('wrong');
+  document.getElementById('next-btn').style.display='flex';
+}
+
+// ===== XP & LEVELS =====
+const XP_LEVELS=[
+  {level:1,name:'Novice',minXP:0},
+  {level:2,name:'Explorer',minXP:100},
+  {level:3,name:'Scholar',minXP:250},
+  {level:4,name:'Expert',minXP:500},
+  {level:5,name:'Master',minXP:900},
+  {level:6,name:'Genius',minXP:1400},
+  {level:7,name:'Prodigy',minXP:2100},
+  {level:8,name:'Legend',minXP:3000},
+  {level:9,name:'Champion',minXP:4200},
+  {level:10,name:'Quiz God',minXP:5800},
+];
+
+function getXPLevel(xp){
+  return [...XP_LEVELS].reverse().find(l=>xp>=l.minXP)||XP_LEVELS[0];
+}
+
+function awardXP(score,pct){
+  if(!activeProfile) return 0;
+  const earned=Math.round(score/5)+(pct>=80?20:pct>=60?10:0);
+  const oldXP=activeProfile.xp||0;
+  const oldLevel=getXPLevel(oldXP);
+  activeProfile.xp=oldXP+earned;
+  saveProfiles();
+  updateXPBar();
+  const newLevel=getXPLevel(activeProfile.xp);
+  if(newLevel.level>oldLevel.level) showLevelUp(newLevel);
+  toast('+'+earned+' XP ✨','info');
+  return earned;
+}
+
+function updateXPBar(){
+  if(!activeProfile) return;
+  const xp=activeProfile.xp||0;
+  const lv=getXPLevel(xp);
+  const next=XP_LEVELS.find(l=>l.level===lv.level+1);
+  const wrap=document.getElementById('xp-bar-wrap');
+  if(!wrap) return;
+  wrap.style.display='flex';
+  document.getElementById('level-badge').textContent='Lv '+lv.level+' '+lv.name;
+  if(!next){
+    document.getElementById('xp-fill').style.width='100%';
+    document.getElementById('xp-label').textContent=xp+' XP MAX ⭐';
+    return;
+  }
+  const pct=Math.min(100,Math.round(((xp-lv.minXP)/(next.minXP-lv.minXP))*100));
+  document.getElementById('xp-fill').style.width=pct+'%';
+  document.getElementById('xp-label').textContent=xp+' / '+next.minXP+' XP';
+}
+
+function showLevelUp(level){
+  const div=document.createElement('div');
+  div.className='levelup-overlay';
+  div.onclick=()=>div.remove();
+  div.innerHTML=`<div class="levelup-box">
+    <div class="levelup-icon">🏆</div>
+    <div class="levelup-title">Level Up!</div>
+    <div style="color:var(--text2);font-size:0.9rem;margin-bottom:18px">You reached <strong>Level ${level.level} — ${level.name}</strong>!</div>
+    <button class="btn btn-primary" onclick="this.closest('.levelup-overlay').remove()">Awesome! 🎉</button>
+  </div>`;
+  document.body.appendChild(div);
+  launchConfetti();
+  setTimeout(()=>{if(document.body.contains(div))div.remove();},5000);
+}
+
+// ===== TOPIC RECOMMENDATIONS =====
+function renderRecommendations(){
+  if(!activeProfile||!activeProfile.topicScores) return;
+  const scores=activeProfile.topicScores;
+  const weak=Object.entries(scores)
+    .filter(([,arr])=>arr.length>=1&&(arr.reduce((a,b)=>a+b,0)/arr.length)<60)
+    .sort(([,a],[,b])=>(a.reduce((x,y)=>x+y,0)/a.length)-(b.reduce((x,y)=>x+y,0)/b.length))
+    .slice(0,4);
+  const sec=document.getElementById('reco-section');
+  const row=document.getElementById('reco-row');
+  if(!weak.length||!sec){sec&&(sec.style.display='none');return;}
+  sec.style.display='block';
+  row.innerHTML=weak.map(([topic,arr])=>{
+    const avg=Math.round(arr.reduce((a,b)=>a+b,0)/arr.length);
+    const icon=TOPICS.find(t=>t.id===topic)?.icon||'✏️';
+    return `<div class="reco-chip" onclick="selectTopicAndGo('${topic}')">${icon} ${topic} <span style="font-size:0.72rem;opacity:0.7">${avg}%</span></div>`;
+  }).join('');
+}
+
+function selectTopicAndGo(topic){
+  selectedTopic=topic;
+  document.querySelectorAll('.topic-card').forEach(c=>c.classList.toggle('selected',c.dataset.id===topic));
+  const icon=TOPICS.find(t=>t.id===topic)?.icon||'✏️';
+  document.getElementById('home-sub').textContent=icon+' '+topic+' selected — hit Start Quiz!';
+  goToSettings();
+}
+
+// ===== CHALLENGE FRIEND =====
+function challengeFriend(){
+  const rec=window._lastQuizRec;
+  if(!rec){toast('Complete a quiz first!','error');return;}
+  const data={topic:rec.topic,difficulty:rec.difficulty,score:rec.score,pct:rec.pct,name:activeProfile?.name||'A friend'};
+  const encoded=btoa(encodeURIComponent(JSON.stringify(data)));
+  const url=window.location.origin+window.location.pathname+'#challenge='+encoded;
+  const text=`⚔️ ${data.name} scored ${data.pct}% on ${data.topic} in QuizMania! Can you beat it?`;
+  if(navigator.share){
+    navigator.share({title:'QuizMania Challenge!',text,url}).catch(()=>{
+      navigator.clipboard?.writeText(url).then(()=>toast('Challenge link copied! 📋','success'));
+    });
+  } else {
+    navigator.clipboard?.writeText(url).then(()=>toast('Challenge link copied! 📋 Share it!','success')).catch(()=>{});
+  }
+}
+
+function checkChallenge(){
+  const h=window.location.hash;
+  if(!h.startsWith('#challenge=')) return;
+  try{
+    const data=JSON.parse(decodeURIComponent(atob(h.slice('#challenge='.length))));
+    window._pendingChallenge=data;
+    const banner=document.getElementById('challenge-banner');
+    document.getElementById('challenge-vs').textContent='⚔️ '+(data.name||'Someone');
+    document.getElementById('challenge-title').textContent='Beat '+(data.name||'their')+"'s score!";
+    document.getElementById('challenge-sub').textContent=(data.name||'Someone')+' scored '+data.pct+'% on '+data.topic+'. Can you beat it?';
+    if(banner) banner.style.display='block';
+    window.history.replaceState(null,'',window.location.pathname);
+  }catch(e){console.warn('Invalid challenge link');}
+}
+
+function acceptChallenge(){
+  const ch=window._pendingChallenge;
+  if(!ch){toast('No active challenge','error');return;}
+  selectedTopic=ch.topic;
+  quizDiff=ch.difficulty||'medium';
+  quizMode='questions'; quizCount=10;
+  _prefetch=null; _prefetchRemainder=null;
+  const banner=document.getElementById('challenge-banner');
+  if(banner) banner.style.display='none';
+  document.querySelectorAll('.topic-card').forEach(c=>c.classList.toggle('selected',c.dataset.id===ch.topic));
+  toast('Challenge accepted! Beat '+ch.pct+'% 💪','info');
+  startQuiz();
 }
 
 // ---- TOAST ----
