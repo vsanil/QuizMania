@@ -248,4 +248,8 @@ app.get('/manifest.json', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`QuizMania running on port ${PORT}`);
+  // Keep-alive ping — prevents Render free tier cold starts
+  setInterval(() => {
+    fetch('https://quizmania.onrender.com').catch(()=>{});
+  }, 14 * 60 * 1000); // every 14 minutes
 });
