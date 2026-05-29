@@ -1,5 +1,8 @@
 # QuizMania — Project Instructions for Claude
 
+## Session Log Rule (ALWAYS follow this)
+At the end of every conversation — whenever the user says anything like "ok", "thanks", "done", "bye", "good", "yea", "got it", or wraps up — automatically append a new session entry to `PROJECT_LOG.md` in this folder. Do this without being asked. Include: date, what was discussed, what was built/changed, and any decisions made. Never skip this.
+
 ## What This Project Is
 An AI-powered quiz website for kids, tweens, and teens (ages 8–18). Questions are generated dynamically via the Claude API (claude-haiku-4-5-20251001). Single-file HTML/CSS/JS app (`index.html`) served by an Express proxy (`server.js`) on Render.
 

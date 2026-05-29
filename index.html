@@ -2,9 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>QuizMania ⚡ — AI-Powered Quiz for Kids & Teens</title>
-<meta name="description" content="Free AI-powered quiz game for kids, tweens and teens!"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>QuizMania ⚡ — AI-Powered Quiz for the Whole Family</title>
+<meta name="description" content="Free AI-powered quiz game for the whole family — kids, teens &amp; adults!"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<!-- AdSense — replace YOUR_ADSENSE_PUBLISHER_ID with your ca-pub-XXXXXXXX -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=YOUR_ADSENSE_PUBLISHER_ID" crossorigin="anonymous"></script>
 <meta property="og:title" content="QuizMania ⚡"/>
 <meta property="og:description" content="AI-powered trivia for kids & teens — create a profile and play!"/>
 <meta name="theme-color" content="#7c3aed"/>
@@ -397,6 +401,78 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 /* ============ RECOMMENDATIONS ============ */
 .reco-section{margin-bottom:20px;}
 .reco-row{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ============ SAFE AREAS ============ */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+body { padding-bottom: calc(64px + var(--safe-bottom)); }
+header { padding-top: calc(14px + var(--safe-top)); }
+
+/* ============ LANDING SCREEN ============ */
+#landing-screen { flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 24px; min-height: 100vh; }
+.landing-logo { font-size: 4rem; font-weight: 900; background: linear-gradient(135deg,#a855f7,#3b82f6,#ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: titleGlow 3s ease-in-out infinite alternate; margin-bottom: 8px; }
+.landing-tagline { font-size: 1.15rem; color: var(--text2); margin-bottom: 32px; font-weight: 600; max-width: 360px; }
+.landing-features { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 36px; max-width: 500px; }
+.landing-feat { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; flex: 1; min-width: 130px; max-width: 160px; }
+.landing-feat-icon { font-size: 1.8rem; margin-bottom: 6px; }
+.landing-feat-label { font-size: 0.8rem; font-weight: 700; color: var(--text2); }
+.landing-cta { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+.landing-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.15); border: 1px solid var(--green); color: var(--green); font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; }
+
+/* ============ BOTTOM NAV ============ */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: rgba(15,12,41,0.96); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid var(--border); display: none; padding: 6px 0 calc(6px + var(--safe-bottom)); }
+.bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px 0; transition: var(--transition); font-family: 'Nunito', sans-serif; }
+.bnav-item.active { color: var(--accent2); }
+.bnav-icon { font-size: 1.25rem; line-height: 1; }
+.bnav-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+@media(max-width: 768px) { .bottom-nav.show { display: flex; } }
+@media(min-width: 769px) { .bottom-nav { display: none !important; } body { padding-bottom: 0; } }
+
+/* ============ ADULTS AGE GROUP ============ */
+.pill[data-age="adults"] { border-color: rgba(236,72,153,0.4); }
+.pill[data-age="adults"].selected { border-color: var(--pink); background: rgba(236,72,153,0.2); }
+.age-adults-label::after { content: ' 18+'; font-size: 0.68rem; opacity: 0.7; }
+
+/* ============ FEEDBACK FLOAT BUTTON ============ */
+.feedback-fab { position: fixed; bottom: calc(72px + var(--safe-bottom)); right: 16px; z-index: 190; background: linear-gradient(135deg,var(--accent),var(--accent2)); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 16px rgba(124,58,237,0.4); transition: var(--transition); display: none; align-items: center; justify-content: center; }
+.feedback-fab:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(124,58,237,0.6); }
+.feedback-fab.show { display: flex; }
+@media(min-width: 769px) { .feedback-fab { bottom: 24px; display: flex; } }
+
+/* ============ SLIDE TRANSITIONS ============ */
+@keyframes slideFromRight { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:translateX(0)} }
+@keyframes slideFromLeft { from{opacity:0;transform:translateX(-24px)} to{opacity:1;transform:translateX(0)} }
+.screen.slide-right { animation: slideFromRight 0.3s cubic-bezier(0.4,0,0.2,1); }
+.screen.slide-left { animation: slideFromLeft 0.3s cubic-bezier(0.4,0,0.2,1); }
+
+/* ============ SKELETON LOADING ============ */
+.skeleton { background: linear-gradient(90deg,var(--card2) 25%,var(--card) 50%,var(--card2) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ============ PULL TO REFRESH ============ */
+.pull-indicator{position:fixed;top:calc(68px + var(--safe-top));left:50%;transform:translateX(-50%) translateY(-80px);
+  background:var(--card);border:1px solid var(--border);border-radius:20px;padding:8px 18px;
+  font-size:0.8rem;font-weight:700;color:var(--text2);z-index:150;display:flex;align-items:center;gap:8px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.25);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);pointer-events:none;}
+.pull-indicator.visible{transform:translateX(-50%) translateY(0);}
+.pull-spin{display:inline-block;animation:none;}
+.pull-indicator.refreshing .pull-spin{animation:spin 0.8s linear infinite;}
+
+/* ============ ADSENSE ============ */
+.ad-unit{background:var(--card2);border:1px solid var(--border);border-radius:12px;
+  padding:4px;margin-bottom:20px;overflow:hidden;min-height:90px;display:none;}
+.ad-unit.show{display:block;}
+.ad-label{font-size:0.62rem;color:var(--text2);text-align:center;padding:3px 0;text-transform:uppercase;letter-spacing:1px;}
+
+/* ============ INVITE ROW ============ */
+.invite-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.invite-card { background: linear-gradient(135deg,rgba(59,130,246,0.12),rgba(168,85,247,0.08)); border: 1px solid var(--blue); border-radius: 14px; padding: 14px 18px; flex: 1; min-width: 200px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: var(--transition); }
+.invite-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.2); }
+.invite-card-icon { font-size: 2rem; }
 .reco-chip{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;
   padding:8px 14px;cursor:pointer;font-size:0.8rem;font-weight:700;color:var(--red);transition:var(--transition);}
 .reco-chip:hover{background:rgba(239,68,68,0.2);}
@@ -547,9 +623,32 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 
 <div class="toast-container" id="toast-container"></div>
 <div class="confetti-container" id="confetti-container"></div>
+<div class="pull-indicator" id="pull-indicator">
+  <span class="pull-spin" id="pull-spin">↓</span>
+  <span id="pull-label">Pull to refresh</span>
+</div>
+
+<!-- ======== LANDING SCREEN ======== -->
+<div class="screen center" id="landing-screen">
+  <div style="max-width:480px;width:100%">
+    <div class="landing-logo">⚡ QuizMania</div>
+    <div class="landing-tagline">AI-powered trivia for the whole family — kids, teens &amp; adults!</div>
+    <div class="landing-badge">✨ Powered by Claude AI</div>
+    <div class="landing-features">
+      <div class="landing-feat"><div class="landing-feat-icon">🧠</div><div class="landing-feat-label">AI Questions Every Time</div></div>
+      <div class="landing-feat"><div class="landing-feat-icon">🌍</div><div class="landing-feat-label">14+ Topics</div></div>
+      <div class="landing-feat"><div class="landing-feat-icon">🏆</div><div class="landing-feat-label">Global Leaderboard</div></div>
+      <div class="landing-feat"><div class="landing-feat-icon">👨‍👩‍👧‍👦</div><div class="landing-feat-label">Family Friendly</div></div>
+    </div>
+    <div class="landing-cta">
+      <button class="btn btn-primary btn-lg" style="justify-content:center" onclick="showScreen('auth')">🚀 Get Started Free</button>
+      <button class="btn btn-secondary btn-lg" style="justify-content:center" onclick="playAsGuest()">🎮 Try as Guest</button>
+    </div>
+  </div>
+</div>
 
 <!-- ======== AUTH SCREEN ======== -->
-<div class="screen center active" id="auth-screen">
+<div class="screen center" id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">⚡ QuizMania</div>
     <div class="auth-tagline">AI-powered trivia for kids &amp; teens!</div>
@@ -592,6 +691,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
           <div class="pill" data-age="kids" onclick="selectPill(this,'reg-age-pills','age')">🐣 Kids (8–11)</div>
           <div class="pill" data-age="tweens" onclick="selectPill(this,'reg-age-pills','age')">🧒 Tweens (12–14)</div>
           <div class="pill" data-age="teens" onclick="selectPill(this,'reg-age-pills','age')">🧑 Teens (15–18)</div>
+          <div class="pill" data-age="adults" onclick="selectAgeWithConfirm(this,'reg-age-pills')">🔞 Adults (18+)</div>
         </div>
       </div>
       <div class="form-group">
@@ -645,6 +745,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
         <div class="pill" data-age="kids" onclick="selectPill(this,'age-pills','age')">🐣 Kids (8–11)</div>
         <div class="pill" data-age="tweens" onclick="selectPill(this,'age-pills','age')">🧒 Tweens (12–14)</div>
         <div class="pill" data-age="teens" onclick="selectPill(this,'age-pills','age')">🧑 Teens (15–18)</div>
+        <div class="pill" data-age="adults" onclick="selectAgeWithConfirm(this,'age-pills')">🔞 Adults (18+)</div>
       </div>
     </div>
 
@@ -691,6 +792,17 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       <div class="stat-chip"><div class="stat-num" id="stat-best-topic">—</div><div class="stat-label">Best Topic</div></div>
       <div class="stat-chip"><div class="stat-num" id="stat-streak">🔥0</div><div class="stat-label">Streak</div></div>
       <div class="stat-chip" id="stat-rank-chip" style="display:none;cursor:pointer" onclick="showScreen('leaderboard')" title="View leaderboard"><div class="stat-num" id="stat-rank" style="color:var(--gold)">—</div><div class="stat-label">🌍 Global Rank</div></div>
+    </div>
+
+    <!-- AdSense (adults only) — replace YOUR_ADSENSE_PUBLISHER_ID and YOUR_AD_SLOT_ID -->
+    <div class="ad-unit" id="ad-unit-home">
+      <div class="ad-label">Advertisement</div>
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="YOUR_ADSENSE_PUBLISHER_ID"
+           data-ad-slot="YOUR_AD_SLOT_ID"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
     </div>
 
     <!-- Streak banner -->
@@ -741,9 +853,20 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
     <div class="section-title">🎯 Choose a Topic</div>
     <div class="topic-grid" id="topic-grid"></div>
 
+    <!-- Invite Friends -->
+    <div class="invite-row" id="invite-row">
+      <div class="invite-card" onclick="inviteFriend()">
+        <div class="invite-card-icon">📨</div>
+        <div>
+          <div style="font-weight:800;font-size:0.92rem">Invite Friends &amp; Family</div>
+          <div style="font-size:0.76rem;color:var(--text2);margin-top:2px">Share QuizMania — play together!</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Themed packs -->
     <div class="section-title" style="margin-top:4px">🎮 Fun Packs</div>
-    <div class="packs-row">
+    <div class="packs-row" id="fun-packs-row">
       <div class="pack-chip" onclick="usePack('Harry Potter')">🧙 Harry Potter</div>
       <div class="pack-chip" onclick="usePack('Minecraft')">⛏️ Minecraft</div>
       <div class="pack-chip" onclick="usePack('Marvel Superheroes')">🦸 Marvel</div>
@@ -752,6 +875,20 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
       <div class="pack-chip" onclick="usePack('Pokémon')">🎮 Pokémon</div>
       <div class="pack-chip" onclick="usePack('Taylor Swift')">🎤 Taylor Swift</div>
       <div class="pack-chip" onclick="usePack('The Olympics')">🏅 Olympics</div>
+    </div>
+    <!-- Adult fun packs (shown for adults only) -->
+    <div id="adult-packs-row" style="display:none">
+      <div class="section-title" style="margin-top:4px">🔞 Adults Packs</div>
+      <div class="packs-row">
+        <div class="pack-chip" onclick="usePack('Netflix &amp; Streaming Shows')">📺 Netflix</div>
+        <div class="pack-chip" onclick="usePack('True Crime Cases')">🔍 True Crime</div>
+        <div class="pack-chip" onclick="usePack('Classic Rock Music')">🎸 Classic Rock</div>
+        <div class="pack-chip" onclick="usePack('Pub Quiz General Knowledge')">🍺 Pub Quiz</div>
+        <div class="pack-chip" onclick="usePack('World Politics &amp; Current Events')">🌐 World Politics</div>
+        <div class="pack-chip" onclick="usePack('Fine Dining &amp; Wine')">🍷 Food &amp; Wine</div>
+        <div class="pack-chip" onclick="usePack('Classic Literature')">📖 Literature</div>
+        <div class="pack-chip" onclick="usePack('World Cinema &amp; Art Films')">🎬 World Cinema</div>
+      </div>
     </div>
 
     <!-- Custom topic -->
@@ -986,6 +1123,41 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
   </div>
 </div>
 
+<!-- ======== BOTTOM NAV ======== -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="bnav-item" id="bnav-home" onclick="showScreen('home');setActiveNav('home')">
+    <span class="bnav-icon">🏠</span><span class="bnav-label">Home</span>
+  </button>
+  <button class="bnav-item" id="bnav-play" onclick="bnavPlay()">
+    <span class="bnav-icon">🎯</span><span class="bnav-label">Play</span>
+  </button>
+  <button class="bnav-item" id="bnav-ranks" onclick="showScreen('leaderboard');setActiveNav('ranks')">
+    <span class="bnav-icon">🏆</span><span class="bnav-label">Ranks</span>
+  </button>
+  <button class="bnav-item" id="bnav-history" onclick="showScreen('history');setActiveNav('history')">
+    <span class="bnav-icon">📜</span><span class="bnav-label">History</span>
+  </button>
+  <button class="bnav-item" id="bnav-profile" onclick="handleProfileChipClick()">
+    <span class="bnav-icon" id="bnav-avatar">👤</span><span class="bnav-label">Profile</span>
+  </button>
+</nav>
+
+<!-- ======== FEEDBACK FLOAT BUTTON ======== -->
+<button class="feedback-fab" id="feedback-fab" onclick="sendFeedback()" title="Send Feedback">💬</button>
+
+<!-- ======== ADULT AGE CONFIRM MODAL ======== -->
+<div id="adult-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:center;justify-content:center;padding:20px">
+  <div class="modal-box" style="border-color:var(--pink);max-width:360px">
+    <div class="modal-icon">🔞</div>
+    <div class="modal-title">Adults Section</div>
+    <div class="modal-sub">This section contains content designed for adults (18+). By continuing you confirm you are 18 years of age or older.</div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="cancelAdultConfirm()">← Back</button>
+      <button class="btn btn-primary" style="background:linear-gradient(135deg,var(--pink),var(--accent))" onclick="confirmAdult()">I'm 18+ ✓</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ================================================================
 // QUIZMANIA — Multi-Profile, AI-Powered Quiz App
@@ -1008,6 +1180,13 @@ const TOPICS = [
   {id:'Music & Arts',icon:'🎵',name:'Music & Arts',desc:'Songs & creativity'},
   {id:'Movies & TV',icon:'🎬',name:'Movies & TV',desc:'Films & characters'},
   {id:'Indian Premier League',icon:'🏏',name:'IPL Cricket',desc:'Teams, players & records'},
+  // Adult topics (shown for isAdult profiles)
+  {id:'Food & Drink',icon:'🍷',name:'Food & Drink',desc:'Cuisine, wine & flavours', adultOnly:true},
+  {id:'Politics & World Affairs',icon:'🗳️',name:'Politics',desc:'World affairs & leadership', adultOnly:true},
+  {id:'Literature & Books',icon:'📚',name:'Literature',desc:'Classic & modern books', adultOnly:true},
+  {id:'Mythology & Ancient History',icon:'🏛️',name:'Mythology',desc:'Gods, legends & ancient worlds', adultOnly:true},
+  {id:'Business & Finance',icon:'💼',name:'Business',desc:'Economics & entrepreneurship', adultOnly:true},
+  {id:'Science & Medicine',icon:'🩺',name:'Medicine',desc:'Health, biology & discoveries', adultOnly:true},
 ];
 
 const ACHIEVEMENTS = [
@@ -1045,6 +1224,11 @@ window.addEventListener('load', async () => {
   loadToggles();
   renderTopicGrid();
 
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+
   // Try auto-login from saved credentials
   const savedAuth = lsGet('qm_auth');
   if (savedAuth) {
@@ -1062,12 +1246,19 @@ window.addEventListener('load', async () => {
       }
     } catch(e) { /* server offline — fall through */ }
     setAuthLoading(false);
-    // Credentials invalid or server down — clear and show auth
     localStorage.removeItem('qm_auth');
   }
-  checkChallenge(); // Parse URL hash for challenge links
+  checkChallenge();
   renderProfilesScreen();
-  showScreen('auth');
+
+  // Show landing screen for first-time visitors, auth for returning guests
+  const hasVisited = ls('qm_visited');
+  if (!hasVisited && !savedAuth) {
+    ls('qm_visited', '1');
+    showScreen('landing');
+  } else {
+    showScreen('auth');
+  }
 });
 
 // ---- AUTH ----
@@ -1133,6 +1324,7 @@ async function doRegister(){
     id: 'p_'+Date.now(),
     name: username,
     age: ageEl.dataset.age,
+    isAdult: ageEl.dataset.age === 'adults',
     avatar: avatarEl.dataset.avatar,
     totalQuizzes:0, totalQs:0, bestStreak:0, streak:0,
     lastStreakDate:null, topicScores:{}, speedRecord:null,
@@ -1190,6 +1382,11 @@ function logout(){
        document.getElementById('profile-chip').style.display='none';
        document.getElementById('history-btn').style.display='none';
        document.getElementById('lb-btn').style.display='none';
+       // Hide bottom nav and FAB
+       const bnav = document.getElementById('bottom-nav');
+       if(bnav) bnav.classList.remove('show');
+       const fab = document.getElementById('feedback-fab');
+       if(fab) fab.classList.remove('show');
        // Reset auth form
        document.getElementById('login-user').value='';
        document.getElementById('login-pass').value='';
@@ -1312,7 +1509,7 @@ function renderLocalLeaderboard(){
       <div class="lb-avatar">${p.avatar}</div>
       <div class="lb-info">
         <div class="lb-name">${p.name}</div>
-        <div class="lb-meta">${{kids:'🐣 Kids',tweens:'🧒 Tweens',teens:'🧑 Teens'}[p.age]||p.age} · ${p.quizzes} quizzes · Best: ${p.best}%</div>
+        <div class="lb-meta">${{kids:'🐣 Kids',tweens:'🧒 Tweens',teens:'🧑 Teens',adults:'🔞 Adults'}[p.age]||p.age} · ${p.quizzes} quizzes · Best: ${p.best}%</div>
       </div>
       <div class="lb-score">
         <div class="lb-score-num">${p.avg}%</div>
@@ -1370,7 +1567,7 @@ function displayGlobalPlayers(){
 
   const medals = ['🥇','🥈','🥉'];
   const rankClass = ['gold','silver','bronze'];
-  const ageLbl = {kids:'🐣 Kids',tweens:'🧒 Tweens',teens:'🧑 Teens'};
+  const ageLbl = {kids:'🐣 Kids',tweens:'🧒 Tweens',teens:'🧑 Teens',adults:'🔞 Adults'};
   const XP_LABELS = ['','Novice','Explorer','Challenger','Scholar','Expert','Master','Champion','Legend','Hero','Quiz God'];
 
   list.innerHTML = sorted.map((p,i) => {
@@ -1543,10 +1740,29 @@ function saveAsked(pid, asked){
 }
 
 // ---- SCREENS ----
-function showScreen(name){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+const _SCREEN_ORDER = ['landing','auth','profiles','setup','home','settings','quiz','results','history','leaderboard'];
+let _currentScreen = 'landing';
+
+function showScreen(name, dir){
+  const prev = _currentScreen;
+  _currentScreen = name;
+
+  // Determine slide direction
+  let direction = dir;
+  if(!direction){
+    const pi = _SCREEN_ORDER.indexOf(prev);
+    const ni = _SCREEN_ORDER.indexOf(name);
+    if(pi !== -1 && ni !== -1) direction = ni > pi ? 'right' : ni < pi ? 'left' : 'fade';
+    else direction = 'fade';
+  }
+
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','slide-right','slide-left'));
   const s = document.getElementById(name+'-screen');
-  if(s) s.classList.add('active');
+  if(!s) return;
+  s.classList.add('active');
+  if(direction === 'right') s.classList.add('slide-right');
+  else if(direction === 'left') s.classList.add('slide-left');
+
   if(name==='history') renderHistory();
   if(name==='home'){ updateHomeStats(); updateDailyBanner(); }
   if(name==='leaderboard'){ _lbTab = authUser ? 'global' : 'local'; renderLeaderboard(); }
@@ -1584,7 +1800,7 @@ function renderProfilesScreen(){
       </div>
       <div class="profile-avatar">${p.avatar}</div>
       <div class="profile-name">${p.name}</div>
-      <div class="profile-meta">${{kids:'🐣 Kids',tweens:'🧒 Tweens',teens:'🧑 Teens'}[p.age]||p.age}</div>
+      <div class="profile-meta">${{kids:'🐣 Kids',tweens:'🧒 Tweens',teens:'🧑 Teens',adults:'🔞 Adults'}[p.age]||p.age}</div>
       <div class="profile-stats">${p.totalQuizzes||0} quizzes · ${avg?avg+'% avg':'No quizzes yet'}</div>
     </div>`;
   }).join('') +
@@ -1602,8 +1818,21 @@ function selectProfile(id){
   document.getElementById('chip-name').textContent = activeProfile.name;
   document.getElementById('history-btn').style.display='flex';
   document.getElementById('lb-btn').style.display='flex';
+  // Bottom nav
+  const bnav = document.getElementById('bottom-nav');
+  if(bnav){ bnav.classList.add('show'); }
+  const bnavAvatar = document.getElementById('bnav-avatar');
+  if(bnavAvatar) bnavAvatar.textContent = activeProfile.avatar;
+  const fab = document.getElementById('feedback-fab');
+  if(fab) fab.classList.add('show');
   updateHomeStats();
+  // Show adult packs only for adult profiles
+  const adultPacks = document.getElementById('adult-packs-row');
+  if(adultPacks) adultPacks.style.display = activeProfile.isAdult ? 'block' : 'none';
+  // AdSense — show ads for adult profiles only (COPPA)
+  initAds();
   showScreen('home');
+  setActiveNav('home');
 }
 
 function switchProfile(){
@@ -1710,16 +1939,17 @@ function saveProfile(){
   const age = ageEl.dataset.age;
   const avatar = avatarEl.dataset.avatar;
 
+  const isAdult = age === 'adults';
   if(editingProfileId){
     const p = profiles.find(p=>p.id===editingProfileId);
-    if(p){ p.name=name; p.age=age; p.avatar=avatar; }
+    if(p){ p.name=name; p.age=age; p.avatar=avatar; p.isAdult=isAdult; }
     saveProfiles();
-    if(authUser) cloudSave(); // sync name/avatar update to cloud
+    if(authUser) cloudSave();
     renderProfilesScreen();
     selectProfile(editingProfileId);
     toast('Profile updated! ✨','success');
   } else {
-    const newP = { id:'p_'+Date.now(), name, age, avatar, totalQuizzes:0, totalQs:0, bestStreak:0, streak:0, lastStreakDate:null, topicScores:{}, speedRecord:null, perfectByTopic:{}, customQuizzes:0 };
+    const newP = { id:'p_'+Date.now(), name, age, avatar, isAdult, totalQuizzes:0, totalQs:0, bestStreak:0, streak:0, lastStreakDate:null, topicScores:{}, speedRecord:null, perfectByTopic:{}, customQuizzes:0 };
     profiles.push(newP);
     saveProfiles();
     renderProfilesScreen();
@@ -1732,6 +1962,10 @@ function saveProfile(){
 function updateHomeStats(){
   if(!activeProfile) return;
   document.getElementById('home-avatar').textContent = activeProfile.avatar;
+  // Refresh topic grid to show/hide adult topics
+  renderTopicGrid();
+  const adultPacks = document.getElementById('adult-packs-row');
+  if(adultPacks) adultPacks.style.display = activeProfile.isAdult ? 'block' : 'none';
   document.getElementById('home-greeting-text').textContent = 'Hey, '+activeProfile.name+'! 👋';
   if(!selectedTopic) document.getElementById('home-sub').textContent = 'Pick a topic below and start your quiz';
 
@@ -1805,7 +2039,9 @@ function renderAchievements(){
 // ---- TOPICS ----
 function renderTopicGrid(){
   const grid = document.getElementById('topic-grid');
-  grid.innerHTML = TOPICS.map(t=>`
+  const isAdult = activeProfile?.isAdult === true;
+  const visible = TOPICS.filter(t => !t.adultOnly || isAdult);
+  grid.innerHTML = visible.map(t=>`
     <div class="topic-card" data-id="${t.id}" onclick="selectTopic(this,'${t.id}')">
       <div class="topic-icon">${t.icon}</div>
       <div class="topic-name">${t.name}</div>
@@ -1883,7 +2119,7 @@ function selectDiff(el){
   _prefetch=null;
 }
 
-// ---- CLAUDE API ----
+// ---- CLAUDE API (hints only) ----
 async function callClaude(body){
   const res = await fetch(CLAUDE_ENDPOINT,{
     method:'POST',
@@ -1894,68 +2130,45 @@ async function callClaude(body){
   return res.json();
 }
 
+// ---- QUESTION GENERATION (server-cached) ----
 async function generateQuestions(topic, difficulty, count, age){
-  const diffLabel = difficulty==='adaptive'?'medium':difficulty;
-  const pid = activeProfile?.id||'guest';
+  const diffLabel = difficulty==='adaptive' ? 'medium' : difficulty;
+  const pid = activeProfile?.id || 'guest';
   const asked = getAsked(pid);
-  const key = topic+'-'+diffLabel;
-  const askedList = asked[key]||[];
+  const key = topic + '-' + diffLabel;
+  const askedList = asked[key] || [];
 
-  const ageDesc = {
-    kids:'children aged 8-11 (simple words, fun, short sentences)',
-    tweens:'tweens aged 12-14 (moderate complexity, pop culture OK)',
-    teens:'teenagers aged 15-18 (advanced vocabulary, deeper concepts)'
-  }[age]||'young people';
-
-  const isAtlas = topic==='World Atlas';
-  const isFlag = topic==='Flag Quiz';
-  const isTF = quizMode==='truefalse';
-
-  const prompt = isTF
-    ? `Generate exactly ${count} true-or-false quiz questions about "${topic}" for ${ageDesc}. Difficulty: ${diffLabel}.
-Previously asked (AVOID repeating): ${askedList.slice(-30).join(' | ')||'none'}.
-Return ONLY a JSON array — no markdown:
-[{"question":"...a clear statement...","options":["True","False"],"answer":"True","hint":"...","explanation":"..."}]
-Each question should be a factual statement that is clearly True or False. "answer" must be exactly "True" or "False".`
-    : isFlag
-    ? `Generate exactly ${count} flag quiz questions for ${ageDesc}. Difficulty: ${diffLabel}.
-Easy = very famous flags (USA, UK, France, Japan, Brazil, Canada, Australia).
-Medium = well-known flags (India, Germany, Italy, Mexico, South Africa, Argentina, China).
-Hard = tricky/similar-looking flags (Chad, Romania, Monaco, Indonesia, Poland, etc.).
-Each question shows a flag emoji and asks which country it belongs to.
-Previously asked (AVOID repeating): ${askedList.slice(-30).join(' | ')||'none'}.
-Return ONLY a JSON array — no markdown:
-[{"question":"Which country does this flag belong to?","flag":"🇫🇷","options":["France","Germany","Italy","Spain"],"answer":"France","hint":"This country is famous for the Eiffel Tower","explanation":"France's flag has three vertical stripes: blue, white, and red — called the Tricolore."}]
-"flag" must be a single country flag emoji. "answer" must exactly match one of the options.`
-    : isAtlas
-    ? `Generate exactly ${count} geography/atlas multiple-choice questions for ${ageDesc}. Difficulty: ${diffLabel}.
-Previously asked (AVOID repeating): ${askedList.slice(-30).join(' | ')||'none'}.
-Return ONLY a JSON array:
-[{"question":"...","options":["A","B","C","D"],"answer":"B","hint":"...","explanation":"...","countryCode":"BR"}]
-countryCode is ISO 2-letter code or null.`
-    : `Generate exactly ${count} multiple-choice quiz questions about "${topic}" for ${ageDesc}. Difficulty: ${diffLabel}.
-Educational, engaging, accurate, age-appropriate.
-Previously asked (AVOID repeating): ${askedList.slice(-50).join(' | ')||'none'}.
-Return ONLY a JSON array:
-[{"question":"...","options":["A","B","C","D"],"answer":"B","hint":"...","explanation":"..."}]
-"answer" must exactly match one of the options.`;
-
-  const data = await callClaude({
-    model:'claude-haiku-4-5-20251001', max_tokens: count>20 ? 8000 : count>10 ? 4000 : 3000,
-    system:'You are a quiz question generator. Return ONLY valid JSON arrays. No markdown.',
-    messages:[{role:'user',content:prompt}]
+  const res = await fetch('/api/questions', {
+    method: 'POST',
+    headers: {'content-type': 'application/json'},
+    body: JSON.stringify({
+      topic,
+      difficulty,
+      count,
+      age: age || activeProfile?.age || 'tweens',
+      mode: quizMode,
+      askedList: askedList.slice(-50)
+    })
   });
 
-  const text = data.content[0].text.trim();
-  const jsonStr = text.startsWith('[')?text:text.match(/\[[\s\S]*\]/)?.[0];
-  if(!jsonStr) throw new Error('Invalid response format');
-  const questions = JSON.parse(jsonStr);
+  if(!res.ok){
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.error || 'Could not load questions ('+res.status+')');
+  }
 
-  // Track asked questions
-  if(!asked[key]) asked[key]=[];
-  questions.forEach(q=>{ const h=hash(q.question); if(!asked[key].includes(h)) asked[key].push(h); });
-  if(asked[key].length>200) asked[key]=asked[key].slice(-200);
+  const data = await res.json();
+  const questions = data.questions;
+  if(!questions || !questions.length) throw new Error('No questions returned');
+
+  // Track asked questions locally (anti-repeat)
+  if(!asked[key]) asked[key] = [];
+  questions.forEach(q => {
+    const h = hash(q.question);
+    if(!asked[key].includes(h)) asked[key].push(h);
+  });
+  if(asked[key].length > 200) asked[key] = asked[key].slice(-200);
   saveAsked(pid, asked);
+
   return questions;
 }
 
@@ -2118,9 +2331,13 @@ function pickAnswer(btn, idx){
       document.getElementById('question-card').appendChild(badge);
     }
     playSound('correct');
+    // Haptic: double short pulse = correct
+    navigator.vibrate?.([40, 60, 40]);
     if(quizDiff==='adaptive'&&qe.streak>=2){const lvls=['easy','medium','hard'];const i=lvls.indexOf(qe.adaptDiff);if(i<2)qe.adaptDiff=lvls[i+1];}
   }else{
     qe.combo=0; qe.streak=0; playSound('wrong');
+    // Haptic: long buzz = wrong
+    navigator.vibrate?.(200);
     if(quizDiff==='adaptive'&&qe.answers.slice(-2).filter(a=>!a.isCorrect).length>=2){const lvls=['easy','medium','hard'];const i=lvls.indexOf(qe.adaptDiff);if(i>0)qe.adaptDiff=lvls[i-1];}
   }
 
@@ -2719,6 +2936,193 @@ function toast(msg,type='info'){
   const el=document.createElement('div');
   el.className='toast '+type;el.textContent=msg;c.appendChild(el);
   setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity 0.3s';setTimeout(()=>el.remove(),300);},3000);
+}
+
+// ---- BOTTOM NAV ----
+function setActiveNav(name){
+  ['home','play','ranks','history','profile'].forEach(n=>{
+    const el=document.getElementById('bnav-'+n);
+    if(el) el.classList.toggle('active', n===name);
+  });
+}
+function bnavPlay(){
+  if(!selectedTopic){ toast('Pick a topic first! 👆','error'); showScreen('home'); return; }
+  goToSettings();
+  setActiveNav('play');
+}
+
+// ---- ADULTS AGE CONFIRM ----
+let _pendingAgeEl = null;
+let _pendingAgeGroup = null;
+
+function selectAgeWithConfirm(el, groupId){
+  if(el.dataset.age !== 'adults'){
+    selectPill(el, groupId, 'age');
+    return;
+  }
+  _pendingAgeEl = el;
+  _pendingAgeGroup = groupId;
+  const modal = document.getElementById('adult-modal');
+  if(modal){ modal.style.display='flex'; }
+}
+
+function confirmAdult(){
+  const modal = document.getElementById('adult-modal');
+  if(modal) modal.style.display='none';
+  if(_pendingAgeEl && _pendingAgeGroup){
+    selectPill(_pendingAgeEl, _pendingAgeGroup, 'age');
+    _pendingAgeEl = null; _pendingAgeGroup = null;
+  }
+}
+
+function cancelAdultConfirm(){
+  const modal = document.getElementById('adult-modal');
+  if(modal) modal.style.display='none';
+  _pendingAgeEl = null; _pendingAgeGroup = null;
+}
+
+// (isAdult flag is set directly in saveProfile and doRegister below)
+
+// ---- INVITE FRIEND ----
+function inviteFriend(){
+  const name = activeProfile?.name || 'a friend';
+  const quizzes = activeProfile?.totalQuizzes || 0;
+  const text = `🧠 ${name} has played ${quizzes} quizzes on QuizMania — the AI quiz app for the whole family!\nJoin at quizmania-pap3.onrender.com ⚡`;
+  const url = 'https://quizmania-pap3.onrender.com';
+  if(navigator.share){
+    navigator.share({ title: 'QuizMania ⚡', text, url }).catch(() => {
+      navigator.clipboard?.writeText(url).then(() => toast('Link copied! 📋', 'success'));
+    });
+  } else {
+    navigator.clipboard?.writeText(url).then(() => toast('Link copied! Share with your family 📋', 'success')).catch(() => {
+      toast('Visit quizmania-pap3.onrender.com', 'info');
+    });
+  }
+}
+
+// ===== SWIPE GESTURES =====
+(function initSwipe(){
+  let startX = 0, startY = 0, startT = 0;
+
+  document.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startT = Date.now();
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    if(!activeProfile) return;
+    // Disable swipe during quiz to prevent accidents
+    if(_currentScreen === 'quiz') return;
+    // Disable on auth/landing/profiles screens
+    if(['landing','auth','profiles','setup'].includes(_currentScreen)) return;
+
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    const dt = Date.now() - startT;
+
+    if(dt > 400) return;                    // too slow — likely a scroll
+    if(Math.abs(dy) > Math.abs(dx)) return; // more vertical than horizontal — scroll
+    if(Math.abs(dx) < 55) return;           // too short — not a deliberate swipe
+
+    if(dx > 0) {
+      // Swipe RIGHT = go back
+      if(_currentScreen === 'settings')    showScreen('home');
+      else if(_currentScreen === 'results')     showScreen('home');
+      else if(_currentScreen === 'history')     showScreen('home');
+      else if(_currentScreen === 'leaderboard') showScreen('home');
+    } else {
+      // Swipe LEFT = go forward
+      if(_currentScreen === 'home' && selectedTopic) goToSettings();
+    }
+  }, { passive: true });
+})();
+
+// ===== PULL TO REFRESH =====
+(function initPullToRefresh(){
+  let startY = 0;
+  let pulling = false;
+  let threshold = 80; // px to trigger refresh
+
+  const indicator = document.getElementById('pull-indicator');
+  const pullLabel = document.getElementById('pull-label');
+  const pullSpin = document.getElementById('pull-spin');
+
+  const refreshableScreens = ['home', 'leaderboard'];
+
+  document.addEventListener('touchstart', e => {
+    if(!refreshableScreens.includes(_currentScreen)) return;
+    if(window.scrollY > 5) return; // only trigger at very top of page
+    startY = e.touches[0].clientY;
+    pulling = true;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if(!pulling || !indicator) return;
+    const dy = e.touches[0].clientY - startY;
+    if(dy < 10) return;
+    // Show indicator as user pulls
+    indicator.classList.add('visible');
+    if(dy >= threshold) {
+      pullLabel.textContent = 'Release to refresh';
+      pullSpin.textContent = '↑';
+    } else {
+      pullLabel.textContent = 'Pull to refresh';
+      pullSpin.textContent = '↓';
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', async e => {
+    if(!pulling || !indicator) return;
+    pulling = false;
+    const dy = e.changedTouches[0].clientY - startY;
+
+    if(dy >= threshold) {
+      // Trigger refresh
+      indicator.classList.add('refreshing');
+      pullLabel.textContent = 'Refreshing…';
+      pullSpin.textContent = '⟳';
+
+      try {
+        if(_currentScreen === 'leaderboard') {
+          _lbPlayers = [];
+          await renderGlobalLeaderboard();
+        } else if(_currentScreen === 'home') {
+          updateHomeStats();
+          updateDailyBanner();
+        }
+      } catch(e) {}
+
+      toast('Refreshed! 🔄', 'success');
+    }
+
+    // Hide indicator
+    indicator.classList.remove('visible', 'refreshing');
+    pullLabel.textContent = 'Pull to refresh';
+    pullSpin.textContent = '↓';
+  }, { passive: true });
+})();
+
+// ===== ADSENSE =====
+function initAds(){
+  const adUnit = document.getElementById('ad-unit-home');
+  if(!adUnit) return;
+  if(activeProfile?.isAdult){
+    adUnit.classList.add('show');
+    // Push the ad (safe to call multiple times — AdSense deduplicates)
+    try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
+  } else {
+    adUnit.classList.remove('show');
+  }
+}
+
+// ---- FEEDBACK ----
+function sendFeedback(){
+  const subject = encodeURIComponent('QuizMania Feedback');
+  const body = encodeURIComponent('Hi,\n\nHere is my feedback about QuizMania:\n\n');
+  const mail = 'mailto:vasanth.sanil@gmail.com?subject='+subject+'&body='+body;
+  window.open(mail, '_blank');
+  toast('Thanks for helping improve QuizMania! 🙏', 'success');
 }
 </script>
 </body>
