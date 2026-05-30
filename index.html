@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>QuizMania ⚡ — AI-Powered Quiz for the Whole Family</title>
-<meta name="description" content="Free AI-powered quiz game for the whole family — kids, teens &amp; adults!"/>
+<title>QuizMania ⚡ — How Smart Is Your Family?</title>
+<meta name="description" content="The ultimate family quiz showdown — thousands of questions across maths, science, sports, geography &amp; more!"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <!-- AdSense — replace YOUR_ADSENSE_PUBLISHER_ID with your ca-pub-XXXXXXXX -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=YOUR_ADSENSE_PUBLISHER_ID" crossorigin="anonymous"></script>
 <meta property="og:title" content="QuizMania ⚡"/>
-<meta property="og:description" content="AI-powered trivia for kids & teens — create a profile and play!"/>
+<meta property="og:description" content="Think you know everything? Prove it! The ultimate family quiz showdown — play free!"/>
 <meta name="theme-color" content="#7c3aed"/>
 <link rel="manifest" href="/manifest.json"/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -632,8 +632,8 @@ header { padding-top: calc(14px + var(--safe-top)); }
 <div class="screen center" id="landing-screen">
   <div style="max-width:480px;width:100%">
     <div class="landing-logo">⚡ QuizMania</div>
-    <div class="landing-tagline">AI-powered trivia for the whole family — kids, teens &amp; adults!</div>
-    <div class="landing-badge">✨ Powered by Claude AI</div>
+    <div class="landing-tagline">Think you know everything? Prove it! 🔥</div>
+    <div class="landing-badge">🧠 Thousands of questions. Zero repeats.</div>
     <div class="landing-features">
       <div class="landing-feat"><div class="landing-feat-icon">🧠</div><div class="landing-feat-label">AI Questions Every Time</div></div>
       <div class="landing-feat"><div class="landing-feat-icon">🌍</div><div class="landing-feat-label">14+ Topics</div></div>
@@ -651,7 +651,7 @@ header { padding-top: calc(14px + var(--safe-top)); }
 <div class="screen center" id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">⚡ QuizMania</div>
-    <div class="auth-tagline">AI-powered trivia for kids &amp; teens!</div>
+    <div class="auth-tagline">Think fast. Score big. Become the Quiz God! 🏆</div>
 
     <div class="auth-tabs">
       <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</div>
@@ -3107,13 +3107,24 @@ function inviteFriend(){
 function initAds(){
   const adUnit = document.getElementById('ad-unit-home');
   if(!adUnit) return;
-  if(activeProfile?.isAdult){
-    adUnit.classList.add('show');
-    // Push the ad (safe to call multiple times — AdSense deduplicates)
-    try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
-  } else {
-    adUnit.classList.remove('show');
-  }
+  if(!activeProfile?.isAdult){ adUnit.classList.remove('show'); return; }
+  // Push the ad first (AdSense deduplicates repeated calls)
+  try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
+  // Only show the container if AdSense actually fills the slot
+  const ins = adUnit.querySelector('ins.adsbygoogle');
+  if(!ins){ adUnit.classList.remove('show'); return; }
+  // Poll for fill status — AdSense sets data-ad-status="filled" when an ad loads
+  let checks = 0;
+  const poll = setInterval(() => {
+    checks++;
+    if(ins.getAttribute('data-ad-status') === 'filled'){
+      adUnit.classList.add('show');
+      clearInterval(poll);
+    } else if(checks >= 10){ // give up after ~5s
+      adUnit.classList.remove('show');
+      clearInterval(poll);
+    }
+  }, 500);
 }
 
 // ---- FEEDBACK ----
