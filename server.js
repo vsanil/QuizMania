@@ -4,6 +4,25 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ── CORS — allow browser, Capacitor iOS, Capacitor Android ───────────────────
+const ALLOWED_ORIGINS = new Set([
+  'https://quizmania-pap3.onrender.com',
+  'capacitor://localhost',   // Capacitor iOS
+  'http://localhost',        // Capacitor Android / dev
+  'http://localhost:3000',
+  'ionic://localhost',       // Ionic compatibility
+]);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin || ALLOWED_ORIGINS.has(origin)) {
+    if (origin) res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 app.use(express.json({ limit: '5mb' }));
 
 // ── Static files (sw.js needs no-cache; CSS/JS get 1hr) ──────────────────────
@@ -121,11 +140,13 @@ Return ONLY a JSON array, no markdown:
 [{"question":"Which country does this flag belong to?","flag":"🇫🇷","options":["France","Germany","Italy","Spain"],"answer":"France","hint":"Known for the Eiffel Tower","explanation":"France's tricolour has blue, white, and red vertical stripes."}]
 "flag" must be a single country flag emoji. "answer" must match one option exactly.`;
 
-  if (topic === 'World Atlas') return `Generate exactly ${count} geography/atlas multiple-choice questions for ${ageDesc}. Difficulty: ${diffLabel}.
+  if (topic === 'World Atlas') return `Generate exactly ${count} world geography multiple-choice questions for ${ageDesc}. Difficulty: ${diffLabel}.
+Ask about capitals, rivers, mountains, continents, oceans, countries, landmarks, and borders. Do NOT ask "identify this flag".
+Each question must include a countryCode (ISO 2-letter) for the country most relevant to the question — used to show a map reference.
 Previously asked — AVOID repeating: ${avoid}.
 Return ONLY a JSON array, no markdown:
-[{"question":"...","options":["A","B","C","D"],"answer":"B","hint":"...","explanation":"...","countryCode":"BR"}]
-countryCode = ISO 2-letter code or null.`;
+[{"question":"...","options":["A","B","C","D"],"answer":"B","hint":"...","explanation":"...","countryCode":"HU"}]
+countryCode is required for every question.`;
 
   return `Generate exactly ${count} multiple-choice quiz questions about "${topic}" for ${ageDesc}. Difficulty: ${diffLabel}.
 Make questions educational, engaging, accurate, and age-appropriate.
@@ -188,6 +209,14 @@ app.post('/api/questions', async (req, res) => {
     console.error('Questions error:', err.message);
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── /api/report — log bad question reports ───────────────────────────────────
+app.post('/api/report', (req, res) => {
+  const { question, answer, topic, difficulty, age } = req.body || {};
+  if(!question) return res.status(400).json({ error: 'No question provided' });
+  console.log('[REPORT]', JSON.stringify({ question, answer, topic, difficulty, age, ts: new Date().toISOString() }));
+  res.json({ ok: true });
 });
 
 // ── /api/claude — proxy for hints and other direct calls ─────────────────────

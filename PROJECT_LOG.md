@@ -123,12 +123,20 @@ Adults: Netflix, True Crime, Classic Rock, Pub Quiz, World Politics, Food & Wine
 
 ## Next Steps (not yet built)
 
-- [ ] Swipe gestures between screens
-- [ ] Pull-to-refresh on leaderboard
-- [ ] AdSense integration (adults only)
-- [ ] Capacitor iOS/Android wrapper
-- [ ] AdMob rewarded ads (mobile)
-- [ ] App Store / Play Store submission
+- [x] Swipe gestures between screens
+- [x] Pull-to-refresh on leaderboard
+- [x] AdSense integration (adults only)
+- [x] PWA install banner
+- [x] Question reporting (🚩 flag button)
+- [x] Offline question cache
+- [x] Topic progress rings
+- [x] Onboarding tutorial (3-step modal)
+- [x] Weekly challenge
+- [x] Leaderboard age group filter
+- [x] More fun packs (Fortnite, F1, K-Pop, Squid Game, NFL, Roblox + more)
+- [x] Capacitor iOS/Android wrapper — code done, user runs `npx cap add ios/android` from terminal
+- [ ] AdMob rewarded ads (mobile, depends on Capacitor)
+- [ ] App Store / Play Store submission (depends on Capacitor)
 
 ---
 
@@ -158,6 +166,58 @@ Adults: Netflix, True Crime, Classic Rock, Pub Quiz, World Politics, Food & Wine
 - Created `PROJECT_LOG.md` as a living project record
 - Added rule to `CLAUDE.md` so Claude automatically updates PROJECT_LOG.md at the end of every session without being asked
 - Confirmed all Session 7 changes were complete and ready to push
+
+### Session 12 (May 2026) — Capacitor iOS/Android Wrapper
+
+- **`capacitor.config.json`** — App ID `com.quizmania.app`, webDir `www`, SplashScreen (dark purple, 1.5s), StatusBar dark
+- **`package.json`** — Added Capacitor 6 devDependencies: core, cli, ios, android, splash-screen, status-bar, haptics. Added scripts: `build:www`, `cap:sync`, `cap:ios`, `cap:android`
+- **`www/`** — Build output folder; `npm run build:www` copies index.html + manifest.json here before Capacitor sync
+- **`index.html`** — Added `_isNative` / `API_BASE` detection. All 6 `/api/` fetch calls now use `API_BASE + '/api/...'` so bundled app hits `https://quizmania-pap3.onrender.com` from inside iOS/Android
+- **`server.js`** — CORS middleware added: allows `capacitor://localhost` (iOS), `http://localhost` (Android), `ionic://localhost`, and the Render domain
+
+**User still needs to run (requires Xcode / Android Studio on Mac):**
+1. `npm install` — installs Capacitor packages
+2. `npx cap add ios` + `npx cap add android` — first time only
+3. `npm run cap:ios` / `npm run cap:android` — opens IDE
+4. Apple Developer account ($99/yr) for App Store submission
+
+### Session 11 (May 2026) — Onboarding, Weekly Challenge, More Packs & Leaderboard
+
+**New features:**
+- **Onboarding tutorial** — 3-step modal on first login (topic picking → lifelines → streaks/leaderboard). Dot step indicators, skip button. Stored in `qm_onboarded` localStorage.
+- **Weekly challenge** — Purple banner on home screen alongside daily. 20 questions, topic rotates weekly by ISO week seed (same topic for all players), resets every Monday. Stored in `qm_weekly_{pid}`.
+- **Leaderboard age group filter** — Filter pills (All / Kids / Tweens / Teens / Adults) on global leaderboard. Age groups compete separately. Uses `p.age` field already in player data.
+- **More fun packs** — 8 new kids/family packs: Fortnite, Squid Game, Formula 1, K-Pop/BTS, Stranger Things, NFL, Roblox, Among Us. 4 new adult packs: Sitcoms, Pop Culture, The 90s, Crypto & Tech.
+- **Score animation** — Confirmed already built via `animateCount()`.
+
+### Session 10 (May 2026) — Polish, Ads, Maps & UX Improvements
+
+**AdSense integration:**
+- AdSense publisher ID + slot ID injected server-side from env vars (`ADSENSE_PUBLISHER_ID`, `ADSENSE_SLOT_ID`) — never in code
+- Ad container hidden until AdSense actually fills the slot (polls `data-ad-status="filled"`)
+- `initAds()` wired up in `selectProfile()` — adults-only, COPPA compliant
+
+**Branding cleanup:**
+- Removed all "AI-powered" and "Powered by Claude AI" user-facing text
+- New copy: "Think you know everything? Prove it! 🔥", "🧠 Thousands of questions. Zero repeats.", "Think fast. Score big. Become the Quiz God! 🏆"
+
+**World Atlas maps:**
+- Replaced broken rectangle SVG map with real Leaflet.js (OpenStreetMap) maps
+- 100+ country lat/lng lookup table with per-country zoom levels
+- Gold pin marker at country center, non-interactive (no accidental swipe during quiz)
+- Flag Quiz: still uses flag emoji display (unchanged)
+- World Atlas: pure geography text questions, no flag spoilers
+
+**New features built:**
+- **PWA install banner** — detects `beforeinstallprompt`, shows custom banner after login, dismiss state persisted
+- **Question reporting** — 🚩 button in quiz, resets each question, logs to Render server via `/api/report`
+- **Offline question cache** — questions stored in localStorage after each successful load; auto-fallback with toast on network failure
+- **Topic progress rings** — circular SVG rings replacing flat strength bars; color-coded, tappable to set topic, scrollable row
+
+**Already-confirmed existing features (not rebuilt):**
+- Share results card (canvas + Web Share API) ✅
+- Rematch / Replay button ✅
+- Challenge a friend (encoded URL) ✅
 
 ### Session 7 (May 2026) — Full Production Upgrade
 - **server.js:** Complete rewrite — server-side question cache (6hr TTL), rate limiting, prompt builder moved server-side, new `/api/questions` endpoint, adults age group in prompts

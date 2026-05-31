@@ -1,0 +1,22 @@
+{
+  "appId": "com.quizmania.app",
+  "appName": "QuizMania",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "launchAutoHide": true,
+      "backgroundColor": "#0f0c29",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "Dark",
+      "backgroundColor": "#0f0c29"
+    }
+  }
+}
