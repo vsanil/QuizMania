@@ -2278,7 +2278,7 @@ function showQuestion(){
 
   // Map
   const mapEl=document.getElementById('map-container');
-  if(q.countryCode){mapEl.style.display='block';mapEl.innerHTML=getMapSVG(q.countryCode);}
+  if(q.countryCode){mapEl.style.display='block';mapEl.innerHTML=getMapSVG(q.countryCode, selectedTopic);}
   else{mapEl.style.display='none';}
 
   // Options — use index to avoid apostrophe/quote escaping bugs
@@ -2653,37 +2653,23 @@ function trySimilar(topic,diff){
   showScreen('settings');
 }
 
-// ---- MAP SVG ----
-function getMapSVG(cc){
-  const h=(cc||'').toUpperCase();
-  const hi=c=>h===c?'highlighted':'';
-  return `<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;background:#1a3a5c;border-radius:10px;padding:8px">
-    <style>.c{fill:#2d6a9f;stroke:#1a3a5c;stroke-width:0.5}.highlighted{fill:#f59e0b!important}</style>
-    <path class="c ${hi('US')}" d="M80,80 L200,70 L220,90 L200,150 L160,180 L100,160 L70,120 Z"/>
-    <path class="c ${hi('CA')}" d="M80,40 L220,30 L230,75 L200,70 L80,80 Z"/>
-    <path class="c ${hi('MX')}" d="M100,160 L160,180 L150,210 L110,200 Z"/>
-    <path class="c ${hi('BR')}" d="M160,240 L240,230 L260,320 L200,360 L150,330 L140,280 Z"/>
-    <path class="c ${hi('AR')}" d="M150,330 L200,360 L190,390 L150,390 L140,360 Z"/>
-    <path class="c ${hi('CO')}" d="M140,220 L170,215 L175,250 L145,255 Z"/>
-    <path class="c ${hi('GB')}" d="M310,80 L330,75 L335,95 L315,100 Z"/>
-    <path class="c ${hi('FR')}" d="M320,100 L350,95 L355,125 L325,130 Z"/>
-    <path class="c ${hi('DE')}" d="M350,80 L380,78 L383,110 L352,112 Z"/>
-    <path class="c ${hi('ES')}" d="M305,120 L340,115 L342,145 L308,148 Z"/>
-    <path class="c ${hi('IT')}" d="M355,115 L375,112 L380,150 L358,155 Z"/>
-    <path class="c ${hi('RU')}" d="M390,50 L600,45 L610,130 L395,135 Z"/>
-    <path class="c ${hi('EG')}" d="M390,140 L430,138 L432,175 L392,177 Z"/>
-    <path class="c ${hi('NG')}" d="M350,200 L390,197 L392,235 L352,238 Z"/>
-    <path class="c ${hi('ZA')}" d="M370,310 L420,308 L422,360 L372,362 Z"/>
-    <path class="c ${hi('KE')}" d="M440,230 L475,227 L477,265 L442,268 Z"/>
-    <path class="c ${hi('ET')}" d="M430,200 L470,197 L472,235 L432,238 Z"/>
-    <path class="c ${hi('CN')}" d="M560,100 L680,95 L685,175 L562,180 Z"/>
-    <path class="c ${hi('IN')}" d="M530,150 L580,147 L582,225 L532,228 Z"/>
-    <path class="c ${hi('JP')}" d="M690,100 L715,98 L717,140 L692,143 Z"/>
-    <path class="c ${hi('SA')}" d="M450,155 L500,152 L502,195 L452,198 Z"/>
-    <path class="c ${hi('AU')}" d="M610,260 L720,255 L725,340 L615,345 Z"/>
-    <path class="c ${hi('ID')}" d="M620,210 L700,205 L705,240 L625,245 Z"/>
-    <text x="400" y="22" fill="#f59e0b" font-size="13" font-family="sans-serif" font-weight="bold" text-anchor="middle">🟡 Which country is highlighted?</text>
-  </svg>`;
+// ---- COUNTRY FLAG DISPLAY ----
+function getMapSVG(cc, topic){
+  if(!cc) return '';
+  const code = cc.toLowerCase();
+  const isFlagQuiz = (topic||'').toLowerCase().includes('flag');
+  const label = isFlagQuiz ? '🚩 Which country does this flag belong to?' : '🌍 Which country are we talking about?';
+  return `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 12px;background:rgba(26,55,92,0.5);border-radius:12px;">
+      <img
+        src="https://flagcdn.com/w320/${code}.png"
+        srcset="https://flagcdn.com/w640/${code}.png 2x"
+        alt="Country flag"
+        style="width:100%;max-width:280px;height:auto;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,0.5);border:2px solid rgba(255,255,255,0.15);"
+        onerror="this.parentElement.style.display='none'"
+      />
+      <div style="color:var(--gold);font-size:0.82rem;font-weight:800;letter-spacing:0.5px;text-align:center;">${label}</div>
+    </div>`;
 }
 
 // ---- CONFETTI ----
