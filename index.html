@@ -470,11 +470,31 @@ header { padding-top: calc(14px + var(--safe-top)); }
 .pred-pct{font-size:0.75rem;font-weight:800;color:var(--text);width:32px;text-align:right;}
 .pred-insight{font-size:0.8rem;color:var(--text2);font-style:italic;margin-top:10px;
   padding:8px 12px;background:rgba(124,58,237,0.08);border-radius:8px;line-height:1.5;}
+.predicted-badge{display:inline-block;background:rgba(245,158,11,0.15);border:1px solid var(--gold);color:var(--gold);font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:6px;margin-bottom:6px;}
 .matchday-header{font-size:0.85rem;font-weight:900;color:var(--text2);margin:20px 0 10px;
   padding-bottom:6px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:1px;}
 .fifa-score-banner{background:linear-gradient(135deg,rgba(0,150,57,0.15),rgba(255,215,0,0.1));
   border:1px solid #00a550;border-radius:12px;padding:12px 16px;margin-bottom:20px;
   display:flex;align-items:center;justify-content:space-between;}
+
+/* ============ FIFA KNOCKOUT ============ */
+.ko-round-badge{display:inline-block;background:var(--accent);color:#fff;font-size:0.72rem;font-weight:900;
+  padding:3px 10px;border-radius:8px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.ko-round-badge.final{background:linear-gradient(135deg,var(--gold),#f97316);color:#000;}
+.ko-round-badge.sf{background:var(--accent2);}
+.ko-progress{font-size:0.75rem;color:var(--text2);font-weight:700;margin-bottom:14px;}
+.ko-nav{display:flex;align-items:center;justify-content:space-between;margin-top:16px;gap:10px;}
+.ko-nav-btn{background:var(--card2);border:1px solid var(--border);color:var(--text);
+  padding:8px 16px;border-radius:10px;font-family:Nunito,sans-serif;font-weight:800;
+  font-size:0.85rem;cursor:pointer;transition:var(--transition);}
+.ko-nav-btn:hover:not(:disabled){border-color:var(--accent);}
+.ko-nav-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.ko-predicted-badge{background:rgba(245,158,11,0.12);border:1px solid var(--gold);color:var(--gold);
+  font-size:0.72rem;font-weight:800;padding:4px 10px;border-radius:8px;margin-bottom:12px;display:inline-block;}
+.fifa-tab-row{display:flex;gap:8px;margin-bottom:16px;}
+.fifa-tab{flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--card2);
+  color:var(--text2);font-family:Nunito,sans-serif;font-weight:800;font-size:0.85rem;cursor:pointer;transition:var(--transition);}
+.fifa-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 
 /* ============ ADULTS AGE GROUP ============ */
 .pill[data-age="adults"] { border-color: rgba(236,72,153,0.4); }
@@ -1137,25 +1157,48 @@ header { padding-top: calc(14px + var(--safe-top)); }
 
 <!-- ======== FIFA 2026 PREDICTIONS SCREEN ======== -->
 <div class="screen" id="fifa-screen">
-  <div style="max-width:660px;margin:0 auto;padding-bottom:80px">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+  <div style="max-width:520px;margin:0 auto;padding-bottom:80px">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
       <button class="btn btn-secondary" onclick="showScreen('home')">← Back</button>
-      <h2 style="font-size:1.5rem;font-weight:900">⚽ FIFA World Cup 2026</h2>
-    </div>
-    <p style="color:var(--text2);margin-bottom:6px;font-size:0.83rem">Pick the winner — then see what the experts predict!</p>
-    <div id="fifa-score-bar" style="display:none" class="fifa-score-banner">
-      <div>
-        <div style="font-size:0.75rem;color:var(--text2);font-weight:700">YOUR PREDICTIONS</div>
-        <div style="font-weight:900;font-size:1rem"><span id="fifa-correct-count">0</span> matching expert pick · <span id="fifa-total-count">0</span> made</div>
+      <div style="flex:1">
+        <div style="font-size:1.1rem;font-weight:900">⚽ FIFA World Cup 2026</div>
+        <div style="font-size:0.75rem;color:var(--text2)" id="fifa-stage-label">Group Stage</div>
       </div>
-      <div style="font-size:2rem" id="fifa-score-emoji">🎯</div>
+      <div id="fifa-score-chip" style="display:none;background:rgba(0,165,80,0.15);border:1px solid #00a550;border-radius:10px;padding:5px 10px;text-align:center">
+        <div style="font-size:1rem" id="fifa-score-emoji">🎯</div>
+        <div style="font-size:0.68rem;color:var(--text2);font-weight:700"><span id="fifa-correct-count">0</span>/<span id="fifa-total-count">0</span></div>
+      </div>
     </div>
+
+    <!-- Stage tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button id="fifa-tab-group" class="pill selected" onclick="switchFifaTab('group')" style="flex:1;justify-content:center;font-size:0.78rem">⚽ Group Stage</button>
+      <button id="fifa-tab-knockout" class="pill" onclick="switchFifaTab('knockout')" style="flex:1;justify-content:center;font-size:0.78rem">🏆 Knockout</button>
+    </div>
+
+    <!-- Match counter + navigation -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <button id="fifa-prev-btn" onclick="fifaNav(-1)" class="btn btn-secondary" style="padding:8px 14px" disabled>← Prev</button>
+      <div style="text-align:center">
+        <div style="font-size:0.78rem;color:var(--text2);font-weight:700" id="fifa-match-counter">Match 1 of 35</div>
+        <div style="font-size:0.72rem;color:var(--accent2);font-weight:800" id="fifa-round-label">Matchday 1</div>
+      </div>
+      <button id="fifa-next-btn" onclick="fifaNav(1)" class="btn btn-secondary" style="padding:8px 14px">Next →</button>
+    </div>
+
+    <!-- Single match card -->
     <div id="fifa-match-list">
       <div style="text-align:center;padding:50px;color:var(--text2)">
         <div class="spinner"></div>
         <div style="margin-top:12px">Loading matches…</div>
       </div>
     </div>
+
+    <!-- Progress dots -->
+    <div id="fifa-dots" style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:14px;padding:0 8px"></div>
+
   </div>
 </div>
 
@@ -2337,109 +2380,170 @@ function selectTopicFromRing(topic){
 }
 
 // ======== FIFA 2026 PREDICTIONS ========
-let _fifaMatches = [];
-let _fifaPicks = {}; // { matchId: 'home'|'draw'|'away' }
-let _fifaPreds = {}; // { matchId: {homeWin,draw,awayWin,insight} }
+let _fifaMatches    = [];
+let _fifaKnockout   = [];
+let _fifaPicks      = {};
+let _fifaPreds      = {};
+let _fifaTab        = 'group';   // 'group' | 'knockout'
+let _fifaGroupIdx   = 0;
+let _fifaKnockIdx   = 0;
+
+function _currentFifaList(){ return _fifaTab==='group' ? _fifaMatches : _fifaKnockout; }
+function _currentFifaIdx(){ return _fifaTab==='group' ? _fifaGroupIdx : _fifaKnockIdx; }
+function _setFifaIdx(i){ if(_fifaTab==='group') _fifaGroupIdx=i; else _fifaKnockIdx=i; }
 
 function loadFifaMatches(){
-  // Load saved picks
   try{ _fifaPicks = JSON.parse(localStorage.getItem('qm_fifa_picks')||'{}'); }catch(e){ _fifaPicks={}; }
   try{ _fifaPreds = JSON.parse(localStorage.getItem('qm_fifa_preds')||'{}'); }catch(e){ _fifaPreds={}; }
 
-  if(_fifaMatches.length){ renderFifaMatches(); return; }
+  const needGroup    = !_fifaMatches.length;
+  const needKnockout = !_fifaKnockout.length;
 
-  fetch(API_BASE+'/api/fifa/matches')
-    .then(r=>r.json())
-    .then(data=>{ _fifaMatches=data; renderFifaMatches(); })
-    .catch(()=>{ document.getElementById('fifa-match-list').innerHTML='<div style="text-align:center;padding:40px;color:var(--red)">❌ Could not load matches. Check connection.</div>'; });
+  if(!needGroup && !needKnockout){ renderCurrentFifaMatch(); return; }
+
+  const p1 = needGroup    ? fetch(API_BASE+'/api/fifa/matches').then(r=>r.json())  : Promise.resolve(_fifaMatches);
+  const p2 = needKnockout ? fetch(API_BASE+'/api/fifa/knockout').then(r=>r.json()) : Promise.resolve(_fifaKnockout);
+
+  Promise.all([p1,p2]).then(([g,k])=>{
+    _fifaMatches  = g;
+    _fifaKnockout = k;
+    renderCurrentFifaMatch();
+  }).catch(()=>{
+    document.getElementById('fifa-match-list').innerHTML='<div style="text-align:center;padding:40px;color:var(--red)">❌ Could not load matches.</div>';
+  });
 }
 
-function renderFifaMatches(){
-  const list = document.getElementById('fifa-match-list');
-  if(!_fifaMatches.length){ list.innerHTML='<p style="color:var(--text2)">No matches found.</p>'; return; }
-
-  // Group by matchday
-  const byDay = {};
-  _fifaMatches.forEach(m=>{ if(!byDay[m.matchday]) byDay[m.matchday]=[];  byDay[m.matchday].push(m); });
-
-  let html = '';
-  [1,2,3].forEach(day=>{
-    const matches = byDay[day]||[];
-    if(!matches.length) return;
-    html += `<div class="matchday-header">⚽ Matchday ${day}</div>`;
-    matches.forEach(m=>{ html += buildMatchCard(m); });
+function switchFifaTab(tab){
+  _fifaTab = tab;
+  ['group','knockout'].forEach(t=>{
+    document.getElementById('fifa-tab-'+t).classList.toggle('selected', t===tab);
   });
-  list.innerHTML = html;
+  document.getElementById('fifa-stage-label').textContent = tab==='group' ? 'Group Stage' : 'Knockout Stage (Predicted Bracket)';
+  renderCurrentFifaMatch();
+}
 
-  // Re-reveal picks that already have predictions
-  Object.keys(_fifaPicks).forEach(id=>{
-    if(_fifaPreds[id]) revealPrediction(id, _fifaPreds[id], _fifaPicks[id]);
-  });
-  updateFifaScoreBar();
+function fifaNav(dir){
+  const list = _currentFifaList();
+  const idx  = _currentFifaIdx();
+  const next = Math.max(0, Math.min(list.length-1, idx+dir));
+  _setFifaIdx(next);
+  renderCurrentFifaMatch();
+}
+
+function renderCurrentFifaMatch(){
+  const list = _currentFifaList();
+  const idx  = _currentFifaIdx();
+  const m    = list[idx];
+  const total= list.length;
+
+  // Counter + round label
+  const counter = document.getElementById('fifa-match-counter');
+  const roundLbl= document.getElementById('fifa-round-label');
+  if(counter) counter.textContent = `Match ${idx+1} of ${total}`;
+  if(roundLbl){
+    if(_fifaTab==='group') roundLbl.textContent = `Matchday ${m?.matchday||''}`;
+    else roundLbl.textContent = m?.round||'';
+  }
+
+  // Prev/Next buttons
+  const prev = document.getElementById('fifa-prev-btn');
+  const next = document.getElementById('fifa-next-btn');
+  if(prev) prev.disabled = idx===0;
+  if(next) next.disabled = idx===total-1;
+
+  // Progress dots
+  const dotsEl = document.getElementById('fifa-dots');
+  if(dotsEl){
+    dotsEl.innerHTML = list.map((_,i)=>{
+      const picked = _fifaPicks[list[i].id];
+      const color  = i===idx ? 'var(--accent)' : picked ? '#10b981' : 'var(--border)';
+      return `<div onclick="_setFifaIdx(${i});renderCurrentFifaMatch()" style="width:8px;height:8px;border-radius:50%;background:${color};cursor:pointer;transition:all 0.2s"></div>`;
+    }).join('');
+  }
+
+  // Render the card
+  const listEl = document.getElementById('fifa-match-list');
+  if(!m){ listEl.innerHTML=''; return; }
+  listEl.innerHTML = buildMatchCard(m);
+
+  // Re-reveal if already picked
+  if(_fifaPicks[m.id] && _fifaPreds[m.id]){
+    revealPrediction(m.id, _fifaPreds[m.id], _fifaPicks[m.id]);
+  }
+  updateFifaScoreChip();
 }
 
 function buildMatchCard(m){
-  const picked = _fifaPicks[m.id];
-  const pred = _fifaPreds[m.id];
-  const hFlag = `https://flagcdn.com/w160/${m.homeTeam.code}.png`;
-  const aFlag = `https://flagcdn.com/w160/${m.awayTeam.code}.png`;
+  const picked   = _fifaPicks[m.id];
+  const isKnock  = !!m.round;
+  const hFlag    = `https://flagcdn.com/w320/${m.homeTeam.code}.png`;
+  const aFlag    = `https://flagcdn.com/w320/${m.awayTeam.code}.png`;
+  const badge    = isKnock
+    ? `<div><span class="match-group-badge" style="background:var(--gold);color:#000">${m.roundShort}</span> &nbsp;${m.date}</div>`
+    : `<div><span class="match-group-badge">Group ${m.group}</span> &nbsp;MD${m.matchday} · ${m.date}</div>`;
+
+  // Knockout: no draw option
+  const pickBtns = isKnock
+    ? `<button class="pick-btn${picked==='home'?' selected-home':''}" onclick="pickFifa('${m.id}','home')" ${picked?'disabled':''}>${m.homeTeam.name.split(' ')[0]} Win</button>
+       <button class="pick-btn${picked==='away'?' selected-away':''}" onclick="pickFifa('${m.id}','away')" ${picked?'disabled':''}>${m.awayTeam.name.split(' ')[0]} Win</button>`
+    : `<button class="pick-btn${picked==='home'?' selected-home':''}" onclick="pickFifa('${m.id}','home')" ${picked?'disabled':''}>${m.homeTeam.name.split(' ')[0]} Win</button>
+       <button class="pick-btn${picked==='draw'?' selected-draw':''}" onclick="pickFifa('${m.id}','draw')" ${picked?'disabled':''}>Draw</button>
+       <button class="pick-btn${picked==='away'?' selected-away':''}" onclick="pickFifa('${m.id}','away')" ${picked?'disabled':''}>${m.awayTeam.name.split(' ')[0]} Win</button>`;
 
   return `<div class="match-card" id="card-${m.id}">
     <div class="match-header">
-      <div><span class="match-group-badge">Group ${m.group}</span> &nbsp;MD${m.matchday} · ${m.date}</div>
-      <div style="font-size:0.75rem">📍 ${m.venue}</div>
+      ${badge}
+      <div style="font-size:0.72rem">📍 ${m.venue}</div>
     </div>
-    <div class="match-teams">
+    ${isKnock?`<div style="text-align:center;margin:6px 0 2px"><span class="predicted-badge">⚠️ Predicted lineup</span></div>`:''}
+    <div class="match-teams" style="padding:20px 16px 16px">
       <div class="match-team">
-        <img src="${hFlag}" alt="${m.homeTeam.name}" onerror="this.style.opacity='0.3'"/>
-        <div class="match-team-name">${m.homeTeam.name}</div>
+        <img src="${hFlag}" alt="${m.homeTeam.name}" style="width:88px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.4)" onerror="this.style.opacity='0.3'"/>
+        <div class="match-team-name" style="font-size:0.9rem;margin-top:10px">${m.homeTeam.name}</div>
       </div>
-      <div class="match-vs">VS</div>
+      <div class="match-vs" style="font-size:1.6rem">VS</div>
       <div class="match-team">
-        <img src="${aFlag}" alt="${m.awayTeam.name}" onerror="this.style.opacity='0.3'"/>
-        <div class="match-team-name">${m.awayTeam.name}</div>
+        <img src="${aFlag}" alt="${m.awayTeam.name}" style="width:88px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.4)" onerror="this.style.opacity='0.3'"/>
+        <div class="match-team-name" style="font-size:0.9rem;margin-top:10px">${m.awayTeam.name}</div>
       </div>
     </div>
-    <div class="match-pick-row" id="picks-${m.id}">
-      <button class="pick-btn${picked==='home'?' selected-home':''}" onclick="pickFifa('${m.id}','home')" ${picked?'disabled':''}>${m.homeTeam.name.split(' ')[0]} Win</button>
-      <button class="pick-btn${picked==='draw'?' selected-draw':''}" onclick="pickFifa('${m.id}','draw')" ${picked?'disabled':''}>Draw</button>
-      <button class="pick-btn${picked==='away'?' selected-away':''}" onclick="pickFifa('${m.id}','away')" ${picked?'disabled':''}>${m.awayTeam.name.split(' ')[0]} Win</button>
-    </div>
+    <div class="match-pick-row" id="picks-${m.id}">${pickBtns}</div>
     <div class="prediction-reveal" id="pred-${m.id}" style="display:none"></div>
   </div>`;
 }
 
 async function pickFifa(matchId, pick){
-  const m = _fifaMatches.find(x=>x.id===matchId);
+  const list = [..._fifaMatches, ..._fifaKnockout];
+  const m = list.find(x=>x.id===matchId);
   if(!m) return;
 
-  // Save pick
   _fifaPicks[matchId] = pick;
   try{ localStorage.setItem('qm_fifa_picks', JSON.stringify(_fifaPicks)); }catch(e){}
 
-  // Disable buttons + highlight selected
+  // Disable buttons + highlight
   const pickRow = document.getElementById('picks-'+matchId);
   if(pickRow){
-    pickRow.querySelectorAll('.pick-btn').forEach(b=>{ b.disabled=true; });
-    const idx = pick==='home'?0:pick==='draw'?1:2;
+    pickRow.querySelectorAll('.pick-btn').forEach(b=>b.disabled=true);
+    const isKnock = !!m.round;
+    const idx = isKnock ? (pick==='home'?0:1) : (pick==='home'?0:pick==='draw'?1:2);
     const cls = pick==='home'?'selected-home':pick==='draw'?'selected-draw':'selected-away';
     pickRow.children[idx]?.classList.add(cls);
   }
 
-  // Show loading in pred area
   const predEl = document.getElementById('pred-'+matchId);
   if(predEl){ predEl.style.display='block'; predEl.innerHTML='<div style="color:var(--text2);font-size:0.8rem;padding:4px 0">🤖 Getting expert prediction…</div>'; }
 
-  // Fetch prediction (cached locally too)
   if(_fifaPreds[matchId]){
     revealPrediction(matchId, _fifaPreds[matchId], pick);
   } else {
     try{
       const res = await fetch(API_BASE+'/api/fifa/predict',{
         method:'POST', headers:{'content-type':'application/json'},
-        body: JSON.stringify({matchId, homeTeam:m.homeTeam.name, awayTeam:m.awayTeam.name, group:m.group})
+        body: JSON.stringify({matchId, homeTeam:m.homeTeam.name, awayTeam:m.awayTeam.name, group:m.group||m.roundShort||'KO'})
       });
       const pred = await res.json();
+      // Knockout: force draw to 0
+      if(m.round){ pred.draw=0; const t=pred.homeWin+pred.awayWin; pred.homeWin=Math.round(pred.homeWin/t*100); pred.awayWin=100-pred.homeWin; }
       _fifaPreds[matchId] = pred;
       try{ localStorage.setItem('qm_fifa_preds', JSON.stringify(_fifaPreds)); }catch(e){}
       revealPrediction(matchId, pred, pick);
@@ -2447,65 +2551,78 @@ async function pickFifa(matchId, pick){
       if(predEl) predEl.innerHTML='<div style="color:var(--red);font-size:0.8rem">Could not load prediction.</div>';
     }
   }
-  updateFifaScoreBar();
+  updateFifaScoreChip();
+  // Update dots
+  renderCurrentFifaMatch();
 }
 
 function revealPrediction(matchId, pred, userPick){
   const predEl = document.getElementById('pred-'+matchId);
   if(!predEl) return;
-  const m = _fifaMatches.find(x=>x.id===matchId);
+  const list = [..._fifaMatches,..._fifaKnockout];
+  const m = list.find(x=>x.id===matchId);
   if(!m) return;
 
-  const expertPick = pred.homeWin > pred.draw && pred.homeWin > pred.awayWin ? 'home'
-    : pred.awayWin > pred.draw && pred.awayWin > pred.homeWin ? 'away' : 'draw';
-  const match = userPick === expertPick;
-  const pickLabel = userPick==='home' ? m.homeTeam.name+' Win' : userPick==='draw' ? 'Draw' : m.awayTeam.name+' Win';
+  const isKnock = !!m.round;
+  const expertPick = pred.homeWin>=pred.awayWin ? 'home' : 'away';
+  const match = userPick===expertPick || (!isKnock && userPick==='draw' && pred.draw>=pred.homeWin && pred.draw>=pred.awayWin);
+  const pickLabel = userPick==='home'?m.homeTeam.name+' Win':userPick==='draw'?'Draw':m.awayTeam.name+' Win';
+  const expertLabel = expertPick==='home'?m.homeTeam.name+' Win':m.awayTeam.name+' Win';
+  const barColor = pct => pct>=50?'#10b981':pct>=35?'#f59e0b':'#ef4444';
 
-  const barColor = (pct) => pct>=50?'#10b981':pct>=35?'#f59e0b':'#ef4444';
-
-  predEl.style.display = 'block';
-  predEl.innerHTML = `
-    <div class="your-pick-label">${match?'✅':'❌'} Your pick: <strong>${pickLabel}</strong> &nbsp;·&nbsp; Expert says: <strong>${expertPick==='home'?m.homeTeam.name+' Win':expertPick==='draw'?'Draw':m.awayTeam.name+' Win'}</strong></div>
+  predEl.style.display='block';
+  predEl.innerHTML=`
+    <div class="your-pick-label">${match?'✅':'❌'} Your pick: <strong>${pickLabel}</strong> · Expert: <strong>${expertLabel}</strong></div>
     <div class="pred-row">
-      <div class="pred-label">🏠 ${m.homeTeam.name.length>10?m.homeTeam.name.slice(0,9)+'…':m.homeTeam.name}</div>
+      <div class="pred-label">${m.homeTeam.name.length>10?m.homeTeam.name.slice(0,9)+'…':m.homeTeam.name}</div>
       <div class="pred-track"><div class="pred-fill" style="width:0%;background:${barColor(pred.homeWin)}" id="pf-h-${matchId}"></div></div>
       <div class="pred-pct">${pred.homeWin}%</div>
     </div>
+    ${!isKnock?`<div class="pred-row"><div class="pred-label">🤝 Draw</div><div class="pred-track"><div class="pred-fill" style="width:0%;background:${barColor(pred.draw)}" id="pf-d-${matchId}"></div></div><div class="pred-pct">${pred.draw}%</div></div>`:''}
     <div class="pred-row">
-      <div class="pred-label">🤝 Draw</div>
-      <div class="pred-track"><div class="pred-fill" style="width:0%;background:${barColor(pred.draw)}" id="pf-d-${matchId}"></div></div>
-      <div class="pred-pct">${pred.draw}%</div>
-    </div>
-    <div class="pred-row">
-      <div class="pred-label">✈️ ${m.awayTeam.name.length>10?m.awayTeam.name.slice(0,9)+'…':m.awayTeam.name}</div>
+      <div class="pred-label">${m.awayTeam.name.length>10?m.awayTeam.name.slice(0,9)+'…':m.awayTeam.name}</div>
       <div class="pred-track"><div class="pred-fill" style="width:0%;background:${barColor(pred.awayWin)}" id="pf-a-${matchId}"></div></div>
       <div class="pred-pct">${pred.awayWin}%</div>
     </div>
     ${pred.insight?`<div class="pred-insight">💬 ${pred.insight}</div>`:''}
+    <div style="text-align:center;margin-top:14px" id="fifa-next-wrap-${matchId}"></div>
   `;
-  // Animate bars after DOM update
+
   setTimeout(()=>{
     const fh=document.getElementById('pf-h-'+matchId); if(fh) fh.style.width=pred.homeWin+'%';
     const fd=document.getElementById('pf-d-'+matchId); if(fd) fd.style.width=pred.draw+'%';
     const fa=document.getElementById('pf-a-'+matchId); if(fa) fa.style.width=pred.awayWin+'%';
-  }, 50);
+  },50);
+
+  // Show Next Match button after reveal, auto-advance after 4s
+  const currentList = _currentFifaList();
+  const currentIdx  = _currentFifaIdx();
+  const isLast = currentIdx >= currentList.length - 1;
+  const wrap = document.getElementById('fifa-next-wrap-'+matchId);
+  if(wrap && !isLast){
+    wrap.innerHTML=`<button onclick="fifaNav(1)" style="background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:12px;font-weight:900;font-size:0.9rem;cursor:pointer;font-family:Nunito,sans-serif">Next Match →</button>`;
+    // Auto-advance after 4 seconds
+    setTimeout(()=>{ if(_currentFifaIdx()===currentIdx) fifaNav(1); }, 4000);
+  } else if(wrap && isLast){
+    wrap.innerHTML=`<div style="font-size:1.2rem;font-weight:900;color:var(--gold)">🏆 You've predicted all matches!</div>`;
+  }
 }
 
-function updateFifaScoreBar(){
-  const total = Object.keys(_fifaPicks).length;
-  if(!total){ document.getElementById('fifa-score-bar').style.display='none'; return; }
-
-  let correct = 0;
-  Object.keys(_fifaPicks).forEach(id=>{
-    const pred = _fifaPreds[id];
-    if(!pred) return;
-    const userPick = _fifaPicks[id];
-    const expertPick = pred.homeWin>pred.draw&&pred.homeWin>pred.awayWin?'home':pred.awayWin>pred.draw&&pred.awayWin>pred.homeWin?'away':'draw';
-    if(userPick===expertPick) correct++;
+function updateFifaScoreChip(){
+  const allPicks = Object.keys(_fifaPicks);
+  const total = allPicks.length;
+  const chip = document.getElementById('fifa-score-chip');
+  if(!chip) return;
+  if(!total){ chip.style.display='none'; return; }
+  let correct=0;
+  allPicks.forEach(id=>{
+    const pred=_fifaPreds[id]; if(!pred) return;
+    const up=_fifaPicks[id];
+    const ep=pred.homeWin>=pred.draw&&pred.homeWin>=pred.awayWin?'home':pred.awayWin>=pred.draw&&pred.awayWin>=pred.homeWin?'away':'draw';
+    if(up===ep) correct++;
   });
-
-  const pct = total>0?Math.round((correct/total)*100):0;
-  document.getElementById('fifa-score-bar').style.display='flex';
+  const pct=total?Math.round((correct/total)*100):0;
+  chip.style.display='block';
   document.getElementById('fifa-correct-count').textContent=correct;
   document.getElementById('fifa-total-count').textContent=total;
   document.getElementById('fifa-score-emoji').textContent=pct>=80?'🔥':pct>=60?'⚽':pct>=40?'🎯':'📊';
