@@ -211,6 +211,95 @@ app.post('/api/questions', async (req, res) => {
   }
 });
 
+// ── FIFA 2026 match data ──────────────────────────────────────────────────────
+const FIFA_MATCHES = [
+  // GROUP A
+  {id:'A1',group:'A',matchday:1,date:'Jun 11',homeTeam:{name:'Mexico',code:'mx'},awayTeam:{name:'South Africa',code:'za'},venue:'Mexico City'},
+  {id:'A2',group:'A',matchday:1,date:'Jun 11',homeTeam:{name:'South Korea',code:'kr'},awayTeam:{name:'Czechia',code:'cz'},venue:'Guadalajara'},
+  // GROUP B
+  {id:'B1',group:'B',matchday:1,date:'Jun 12',homeTeam:{name:'Canada',code:'ca'},awayTeam:{name:'Bosnia & Herz.',code:'ba'},venue:'Toronto'},
+  {id:'B2',group:'B',matchday:1,date:'Jun 12',homeTeam:{name:'Switzerland',code:'ch'},awayTeam:{name:'Qatar',code:'qa'},venue:'Los Angeles'},
+  // GROUP C
+  {id:'C1',group:'C',matchday:1,date:'Jun 13',homeTeam:{name:'Brazil',code:'br'},awayTeam:{name:'Morocco',code:'ma'},venue:'New York/NJ'},
+  {id:'C2',group:'C',matchday:1,date:'Jun 14',homeTeam:{name:'Haiti',code:'ht'},awayTeam:{name:'Scotland',code:'gb-sct'},venue:'Boston'},
+  // GROUP D
+  {id:'D1',group:'D',matchday:1,date:'Jun 13',homeTeam:{name:'USA',code:'us'},awayTeam:{name:'Paraguay',code:'py'},venue:'Los Angeles'},
+  {id:'D2',group:'D',matchday:1,date:'Jun 14',homeTeam:{name:'Australia',code:'au'},awayTeam:{name:'Turkey',code:'tr'},venue:'Los Angeles'},
+  // GROUP E
+  {id:'E1',group:'E',matchday:1,date:'Jun 15',homeTeam:{name:'Germany',code:'de'},awayTeam:{name:'Ecuador',code:'ec'},venue:'Toronto'},
+  {id:'E2',group:'E',matchday:1,date:'Jun 15',homeTeam:{name:'Ivory Coast',code:'ci'},awayTeam:{name:'Curacao',code:'cw'},venue:'Dallas'},
+  // GROUP F
+  {id:'F1',group:'F',matchday:1,date:'Jun 14',homeTeam:{name:'Netherlands',code:'nl'},awayTeam:{name:'Japan',code:'jp'},venue:'Dallas'},
+  {id:'F2',group:'F',matchday:1,date:'Jun 15',homeTeam:{name:'Sweden',code:'se'},awayTeam:{name:'Tunisia',code:'tn'},venue:'Houston'},
+  // GROUP G
+  {id:'G1',group:'G',matchday:1,date:'Jun 15',homeTeam:{name:'Belgium',code:'be'},awayTeam:{name:'Egypt',code:'eg'},venue:'Seattle'},
+  {id:'G2',group:'G',matchday:1,date:'Jun 16',homeTeam:{name:'Iran',code:'ir'},awayTeam:{name:'New Zealand',code:'nz'},venue:'Vancouver'},
+  // GROUP H
+  {id:'H1',group:'H',matchday:1,date:'Jun 14',homeTeam:{name:'Spain',code:'es'},awayTeam:{name:'Cape Verde',code:'cv'},venue:'Atlanta'},
+  {id:'H2',group:'H',matchday:1,date:'Jun 15',homeTeam:{name:'Saudi Arabia',code:'sa'},awayTeam:{name:'Uruguay',code:'uy'},venue:'Miami'},
+  // GROUP I
+  {id:'I1',group:'I',matchday:1,date:'Jun 18',homeTeam:{name:'France',code:'fr'},awayTeam:{name:'Senegal',code:'sn'},venue:'New York/NJ'},
+  {id:'I2',group:'I',matchday:1,date:'Jun 17',homeTeam:{name:'Iraq',code:'iq'},awayTeam:{name:'Norway',code:'no'},venue:'Philadelphia'},
+  // GROUP J
+  {id:'J1',group:'J',matchday:1,date:'Jun 21',homeTeam:{name:'Argentina',code:'ar'},awayTeam:{name:'Algeria',code:'dz'},venue:'Dallas'},
+  {id:'J2',group:'J',matchday:1,date:'Jun 19',homeTeam:{name:'Austria',code:'at'},awayTeam:{name:'Jordan',code:'jo'},venue:'Los Angeles'},
+  // GROUP K
+  {id:'K1',group:'K',matchday:1,date:'Jun 20',homeTeam:{name:'Portugal',code:'pt'},awayTeam:{name:'Colombia',code:'co'},venue:'Houston'},
+  {id:'K2',group:'K',matchday:1,date:'Jun 19',homeTeam:{name:'DR Congo',code:'cd'},awayTeam:{name:'Uzbekistan',code:'uz'},venue:'Mexico City'},
+  // GROUP L
+  {id:'L1',group:'L',matchday:1,date:'Jun 17',homeTeam:{name:'England',code:'gb-eng'},awayTeam:{name:'Croatia',code:'hr'},venue:'Dallas'},
+  {id:'L2',group:'L',matchday:1,date:'Jun 18',homeTeam:{name:'Ghana',code:'gh'},awayTeam:{name:'Panama',code:'pa'},venue:'Houston'},
+  // MATCHDAY 2 — KEY MATCHES
+  {id:'C3',group:'C',matchday:2,date:'Jun 20',homeTeam:{name:'Brazil',code:'br'},awayTeam:{name:'Haiti',code:'ht'},venue:'Philadelphia'},
+  {id:'I3',group:'I',matchday:2,date:'Jun 23',homeTeam:{name:'France',code:'fr'},awayTeam:{name:'Iraq',code:'iq'},venue:'Dallas'},
+  {id:'J3',group:'J',matchday:2,date:'Jun 25',homeTeam:{name:'Argentina',code:'ar'},awayTeam:{name:'Austria',code:'at'},venue:'San Francisco'},
+  {id:'L3',group:'L',matchday:2,date:'Jun 23',homeTeam:{name:'England',code:'gb-eng'},awayTeam:{name:'Ghana',code:'gh'},venue:'Houston'},
+  {id:'H3',group:'H',matchday:2,date:'Jun 21',homeTeam:{name:'Spain',code:'es'},awayTeam:{name:'Saudi Arabia',code:'sa'},venue:'Miami'},
+  {id:'E3',group:'E',matchday:2,date:'Jun 21',homeTeam:{name:'Germany',code:'de'},awayTeam:{name:'Ivory Coast',code:'ci'},venue:'Dallas'},
+  {id:'K3',group:'K',matchday:2,date:'Jun 23',homeTeam:{name:'Portugal',code:'pt'},awayTeam:{name:'Uzbekistan',code:'uz'},venue:'Kansas City'},
+  {id:'A3',group:'A',matchday:2,date:'Jun 19',homeTeam:{name:'Mexico',code:'mx'},awayTeam:{name:'South Korea',code:'kr'},venue:'Atlanta'},
+  // MATCHDAY 3 — DECIDERS
+  {id:'L5',group:'L',matchday:3,date:'Jun 27',homeTeam:{name:'England',code:'gb-eng'},awayTeam:{name:'Panama',code:'pa'},venue:'Toronto'},
+  {id:'C5',group:'C',matchday:3,date:'Jun 27',homeTeam:{name:'Brazil',code:'br'},awayTeam:{name:'Scotland',code:'gb-sct'},venue:'Seattle'},
+  {id:'I5',group:'I',matchday:3,date:'Jun 27',homeTeam:{name:'France',code:'fr'},awayTeam:{name:'Norway',code:'no'},venue:'Philadelphia'},
+  {id:'J5',group:'J',matchday:3,date:'Jun 29',homeTeam:{name:'Argentina',code:'ar'},awayTeam:{name:'Jordan',code:'jo'},venue:'Los Angeles'},
+  {id:'K5',group:'K',matchday:3,date:'Jun 26',homeTeam:{name:'Portugal',code:'pt'},awayTeam:{name:'DR Congo',code:'cd'},venue:'Houston'},
+];
+
+const predictionCache = new Map();
+
+app.get('/api/fifa/matches', (req, res) => res.json(FIFA_MATCHES));
+
+app.post('/api/fifa/predict', async (req, res) => {
+  const { matchId, homeTeam, awayTeam, group } = req.body || {};
+  if(!matchId || !homeTeam || !awayTeam) return res.status(400).json({error:'Missing fields'});
+  if(predictionCache.has(matchId)) return res.json(predictionCache.get(matchId));
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if(!apiKey) return res.json({homeWin:40,draw:25,awayWin:35,insight:'Prediction unavailable — API key not configured.'});
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01','content-type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001', max_tokens:120,
+        messages:[{role:'user',content:`FIFA World Cup 2026 Group ${group}: ${homeTeam} vs ${awayTeam}. Return ONLY valid JSON, no markdown: {"homeWin":45,"draw":28,"awayWin":27,"insight":"One concise expert sentence about this match."} — percentages must sum to exactly 100.`}]
+      })
+    });
+    const d = await response.json();
+    const text = d.content?.[0]?.text?.trim() || '';
+    const match = text.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error('No JSON');
+    const pred = JSON.parse(match[0]);
+    const total = (pred.homeWin||0)+(pred.draw||0)+(pred.awayWin||0);
+    if(Math.abs(total-100)>5) throw new Error('Bad %');
+    predictionCache.set(matchId, pred);
+    res.json(pred);
+  } catch(e) {
+    const fallback = {homeWin:40,draw:28,awayWin:32,insight:'A competitive Group '+group+' encounter expected between these two nations.'};
+    res.json(fallback);
+  }
+});
+
 // ── /api/report — log bad question reports ───────────────────────────────────
 app.post('/api/report', (req, res) => {
   const { question, answer, topic, difficulty, age } = req.body || {};
