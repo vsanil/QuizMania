@@ -1096,9 +1096,6 @@ header { padding-top: calc(14px + var(--safe-top)); }
       <div class="loading-dots"><span></span><span></span><span></span></div>
     </div>
     <div id="quiz-content" style="display:none">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
-        <button class="btn btn-primary next-quiz-btn" onclick="nextQuestion()" style="display:none">Next →</button>
-      </div>
       <div class="question-card" id="question-card">
         <div class="question-text" id="question-text"></div>
         <div class="flag-display" id="flag-display" style="display:none">
@@ -1170,6 +1167,7 @@ header { padding-top: calc(14px + var(--safe-top)); }
         <div style="font-size:1rem" id="fifa-score-emoji">🎯</div>
         <div style="font-size:0.68rem;color:var(--text2);font-weight:700"><span id="fifa-correct-count">0</span>/<span id="fifa-total-count">0</span></div>
       </div>
+      <button class="btn btn-secondary" onclick="resetFifaPicks()" title="Clear all your predictions" style="padding:8px 12px;font-size:0.8rem">🔄 Reset</button>
     </div>
 
     <!-- Stage tabs -->
@@ -2430,6 +2428,24 @@ function fifaNav(dir){
   renderCurrentFifaMatch();
 }
 
+function resetFifaPicks(){
+  showModal(
+    '🔄','Reset predictions?',
+    'This clears all your match picks so you can predict them again from scratch.',
+    [
+      {label:'Cancel', cls:'btn-secondary', action: closeModal},
+      {label:'Reset all', cls:'btn-danger', action: ()=>{
+        _fifaPicks = {};
+        try{ localStorage.removeItem('qm_fifa_picks'); }catch(e){}
+        _fifaGroupIdx = 0; _fifaKnockIdx = 0;
+        closeModal();
+        renderCurrentFifaMatch();
+        toast('Predictions cleared — pick away! ⚽','success');
+      }}
+    ]
+  );
+}
+
 function renderCurrentFifaMatch(){
   const list = _currentFifaList();
   const idx  = _currentFifaIdx();
@@ -2466,9 +2482,9 @@ function renderCurrentFifaMatch(){
   if(!m){ listEl.innerHTML=''; return; }
   listEl.innerHTML = buildMatchCard(m);
 
-  // Re-reveal if already picked
+  // Re-reveal if already picked (no auto-advance on re-render)
   if(_fifaPicks[m.id] && _fifaPreds[m.id]){
-    revealPrediction(m.id, _fifaPreds[m.id], _fifaPicks[m.id]);
+    revealPrediction(m.id, _fifaPreds[m.id], _fifaPicks[m.id], false);
   }
   updateFifaScoreChip();
 }
@@ -2594,15 +2610,14 @@ function revealPrediction(matchId, pred, userPick){
     const fa=document.getElementById('pf-a-'+matchId); if(fa) fa.style.width=pred.awayWin+'%';
   },50);
 
-  // Show Next Match button after reveal, auto-advance after 4s
+  // Show a manual "Next Match" button after reveal. NO auto-advance —
+  // the user must tap to move on, so picks are never skipped/self-answered.
   const currentList = _currentFifaList();
   const currentIdx  = _currentFifaIdx();
   const isLast = currentIdx >= currentList.length - 1;
   const wrap = document.getElementById('fifa-next-wrap-'+matchId);
   if(wrap && !isLast){
     wrap.innerHTML=`<button onclick="fifaNav(1)" style="background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:12px;font-weight:900;font-size:0.9rem;cursor:pointer;font-family:Nunito,sans-serif">Next Match →</button>`;
-    // Auto-advance after 4 seconds
-    setTimeout(()=>{ if(_currentFifaIdx()===currentIdx) fifaNav(1); }, 4000);
   } else if(wrap && isLast){
     wrap.innerHTML=`<div style="font-size:1.2rem;font-weight:900;color:var(--gold)">🏆 You've predicted all matches!</div>`;
   }
@@ -2991,6 +3006,7 @@ function pickAnswer(btn, idx){
     box.textContent='💡 '+q.explanation;
     box.classList.add('show');
   }
+  qe._answeredAt=Date.now();
   document.querySelectorAll('.next-quiz-btn').forEach(b=>b.style.display='flex');
   const rb=document.getElementById('report-q-btn'); if(rb) rb.style.display='inline';
   if(qe.voiceOn) speak(correct?'Correct!':'Incorrect. The answer was '+q.answer);
@@ -3011,6 +3027,10 @@ function showPop(text){
 }
 
 async function nextQuestion(){
+  // Guard against accidental skips: ignore a Next tap that lands right after
+  // an answer is revealed (double-tap / mobile ghost-click on the same spot).
+  if(qe._answeredAt && Date.now()-qe._answeredAt < 450) return;
+  qe._answeredAt=0;
   qe.idx++;
   // If next question isn't loaded yet, wait for background fetch
   if(qe.idx >= qe.questions.length && qe._morePromise){
@@ -3488,6 +3508,7 @@ function autoTimeUp(){
   }
   toast('⏰ Time up!','error');
   playSound('wrong');
+  qe._answeredAt=Date.now();
   document.querySelectorAll('.next-quiz-btn').forEach(b=>b.style.display='flex');
 }
 

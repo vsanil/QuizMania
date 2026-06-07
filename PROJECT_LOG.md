@@ -142,6 +142,22 @@ Adults: Netflix, True Crime, Classic Rock, Pub Quiz, World Politics, Food & Wine
 
 ## Session Log
 
+### Session 13 (June 7, 2026) — Fix: questions auto-advancing without an answer
+- **Bug:** Reported in a FIFA 2026 quiz — questions skipped to the next without the player's answer registering.
+- **Root cause:** A redundant second "Next →" button was rendered at the *top* of the question (above the question card) in addition to the one in the footer. On mobile it popped up right where players tap answers, so a fast double-tap / ghost-click hit Next and skipped the question before the answer counted. (Per-question timer ruled out — user never enabled it; default is Off.)
+- **Fix in `index.html`:**
+  - Removed the duplicate top `next-quiz-btn` (only the footer `#next-btn` remains).
+  - Added a tap-guard in `nextQuestion()` — ignores a Next activation within 450ms of an answer being revealed. Sets `qe._answeredAt` in both `pickAnswer()` and `autoTimeUp()`.
+- Verified all script blocks still parse; only one Next button remains.
+
+- **Second bug (the real one the user saw): FIFA World Cup 2026 Predictions auto-advancing / "self-answering."**
+  - **Root cause:** The *deployed* (HEAD) version of `revealPrediction()` had `setTimeout(()=>{ if(_currentFifaIdx()===currentIdx) fifaNav(1); }, 4000)` — a 4-second auto-advance after each pick. Because `renderCurrentFifaMatch()` re-reveals already-picked matches, the auto-advance cascaded: one pick → jumps every 4s through every already-picked match → marched to Match 37 of 37 ("You've predicted all matches!"). Looked like it answered by itself.
+  - The working copy had already removed the timer locally but **it was never pushed** — so the live site kept doing it.
+  - **Fix in `index.html`:**
+    - Confirmed the 4s auto-advance `setTimeout` is gone; only a manual "Next Match →" button remains. Updated the stale comment.
+    - Added a **🔄 Reset** button in the FIFA header + `resetFifaPicks()` (uses custom `showModal`, per project rule — no `confirm()`). Clears `_fifaPicks` + `qm_fifa_picks`, keeps cached expert preds, resets to Match 1 so the user can re-predict.
+  - **Action for user:** push so live gets the fix, then tap 🔄 Reset to clear the auto-filled picks and predict matches manually.
+
 ### Session 1–3 (early builds)
 - Built initial quiz app, deployed to Render
 - Added multi-profile picker, topic grid, settings screen
