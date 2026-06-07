@@ -268,33 +268,6 @@ const FIFA_MATCHES = [
   {id:'K5',group:'K',matchday:3,date:'Jun 26',homeTeam:{name:'Portugal',code:'pt'},awayTeam:{name:'DR Congo',code:'cd'},venue:'Houston'},
 ];
 
-// ── FIFA 2026 Knockout bracket (predicted lineups) ────────────────────────────
-const FIFA_KNOCKOUT = [
-  // ROUND OF 16
-  {id:'K01',round:'Round of 16',roundShort:'R16',matchNum:1,totalInRound:8,date:'Jun 28',homeTeam:{name:'Brazil',code:'br'},awayTeam:{name:'USA',code:'us'},venue:'MetLife Stadium, New York'},
-  {id:'K02',round:'Round of 16',roundShort:'R16',matchNum:2,totalInRound:8,date:'Jun 28',homeTeam:{name:'France',code:'fr'},awayTeam:{name:'England',code:'gb-eng'},venue:'SoFi Stadium, Los Angeles'},
-  {id:'K03',round:'Round of 16',roundShort:'R16',matchNum:3,totalInRound:8,date:'Jun 29',homeTeam:{name:'Argentina',code:'ar'},awayTeam:{name:'Portugal',code:'pt'},venue:'AT&T Stadium, Dallas'},
-  {id:'K04',round:'Round of 16',roundShort:'R16',matchNum:4,totalInRound:8,date:'Jun 29',homeTeam:{name:'Germany',code:'de'},awayTeam:{name:'Spain',code:'es'},venue:'Mercedes-Benz Stadium, Atlanta'},
-  {id:'K05',round:'Round of 16',roundShort:'R16',matchNum:5,totalInRound:8,date:'Jun 30',homeTeam:{name:'Netherlands',code:'nl'},awayTeam:{name:'Mexico',code:'mx'},venue:'NRG Stadium, Houston'},
-  {id:'K06',round:'Round of 16',roundShort:'R16',matchNum:6,totalInRound:8,date:'Jun 30',homeTeam:{name:'Belgium',code:'be'},awayTeam:{name:'Morocco',code:'ma'},venue:'Lumen Field, Seattle'},
-  {id:'K07',round:'Round of 16',roundShort:'R16',matchNum:7,totalInRound:8,date:'Jul 1',homeTeam:{name:'South Korea',code:'kr'},awayTeam:{name:'Switzerland',code:'ch'},venue:'BC Place, Vancouver'},
-  {id:'K08',round:'Round of 16',roundShort:'R16',matchNum:8,totalInRound:8,date:'Jul 1',homeTeam:{name:'Japan',code:'jp'},awayTeam:{name:'Uruguay',code:'uy'},venue:'Arrowhead Stadium, Kansas City'},
-  // QUARTER-FINALS
-  {id:'K09',round:'Quarter-Final',roundShort:'QF',matchNum:1,totalInRound:4,date:'Jul 9',homeTeam:{name:'Brazil',code:'br'},awayTeam:{name:'France',code:'fr'},venue:'Gillette Stadium, Boston'},
-  {id:'K10',round:'Quarter-Final',roundShort:'QF',matchNum:2,totalInRound:4,date:'Jul 9',homeTeam:{name:'Argentina',code:'ar'},awayTeam:{name:'Germany',code:'de'},venue:'SoFi Stadium, Los Angeles'},
-  {id:'K11',round:'Quarter-Final',roundShort:'QF',matchNum:3,totalInRound:4,date:'Jul 10',homeTeam:{name:'Netherlands',code:'nl'},awayTeam:{name:'Belgium',code:'be'},venue:'Hard Rock Stadium, Miami'},
-  {id:'K12',round:'Quarter-Final',roundShort:'QF',matchNum:4,totalInRound:4,date:'Jul 11',homeTeam:{name:'South Korea',code:'kr'},awayTeam:{name:'Japan',code:'jp'},venue:'Arrowhead Stadium, Kansas City'},
-  // SEMI-FINALS
-  {id:'K13',round:'Semi-Final',roundShort:'SF',matchNum:1,totalInRound:2,date:'Jul 14',homeTeam:{name:'Brazil',code:'br'},awayTeam:{name:'Argentina',code:'ar'},venue:'AT&T Stadium, Dallas'},
-  {id:'K14',round:'Semi-Final',roundShort:'SF',matchNum:2,totalInRound:2,date:'Jul 15',homeTeam:{name:'Germany',code:'de'},awayTeam:{name:'Netherlands',code:'nl'},venue:'Mercedes-Benz Stadium, Atlanta'},
-  // THIRD PLACE
-  {id:'K15',round:'Third Place',roundShort:'3rd',matchNum:1,totalInRound:1,date:'Jul 18',homeTeam:{name:'Argentina',code:'ar'},awayTeam:{name:'Netherlands',code:'nl'},venue:'Hard Rock Stadium, Miami'},
-  // FINAL
-  {id:'K16',round:'FINAL',roundShort:'FINAL',matchNum:1,totalInRound:1,date:'Jul 19',homeTeam:{name:'Brazil',code:'br'},awayTeam:{name:'Germany',code:'de'},venue:'MetLife Stadium, New York'},
-];
-
-app.get('/api/fifa/knockout', (req, res) => res.json(FIFA_KNOCKOUT));
-
 const predictionCache = new Map();
 
 app.get('/api/fifa/matches', (req, res) => res.json(FIFA_MATCHES));
