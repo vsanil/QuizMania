@@ -506,10 +506,15 @@ app.get('/manifest.json', (req, res) => {
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`QuizMania running on port ${PORT}`);
-  // Keep-alive ping — prevents Render free tier cold starts
-  setInterval(() => {
-    fetch('https://quizmania-pap3.onrender.com').catch(() => {});
-  }, 14 * 60 * 1000);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`QuizMania running on port ${PORT}`);
+    // Keep-alive ping — prevents Render free tier cold starts
+    setInterval(() => {
+      fetch('https://quizmania-pap3.onrender.com').catch(() => {});
+    }, 14 * 60 * 1000);
+  });
+}
+
+// ── Exports (for testing) ─────────────────────────────────────────────────────
+module.exports = { app, simpleHash, buildPrompt, checkRateLimit, getCached, addToCache, questionCache, rateLimits };

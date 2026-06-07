@@ -5,26 +5,35 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "test": "jest --testPathPattern=server.test.js --forceExit",
+    "test:watch": "jest --testPathPattern=server.test.js --watch",
+    "test:coverage": "jest --testPathPattern=server.test.js --coverage --forceExit",
     "build:www": "mkdir -p www && cp index.html www/index.html && cp manifest.json www/manifest.json && echo 'www/ ready for Capacitor'",
     "cap:sync": "npm run build:www && npx cap sync",
     "cap:ios": "npm run build:www && npx cap sync ios && npx cap open ios",
     "cap:android": "npm run build:www && npx cap sync android && npx cap open android"
   },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 15000
+  },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "express": "^4.19.2",
     "compression": "^1.7.4",
+    "express": "^4.19.2",
     "graphify": "^1.0.0"
   },
   "devDependencies": {
+    "@capacitor/android": "^6.0.0",
     "@capacitor/cli": "^6.0.0",
     "@capacitor/core": "^6.0.0",
+    "@capacitor/haptics": "^6.0.0",
     "@capacitor/ios": "^6.0.0",
-    "@capacitor/android": "^6.0.0",
     "@capacitor/splash-screen": "^6.0.0",
     "@capacitor/status-bar": "^6.0.0",
-    "@capacitor/haptics": "^6.0.0"
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4"
   }
 }
