@@ -13,9 +13,12 @@
 <meta property="og:description" content="Think you know everything? Prove it! The ultimate family quiz showdown — play free!"/>
 <meta name="theme-color" content="#7c3aed"/>
 <link rel="manifest" href="/manifest.json"/>
+<link rel="apple-touch-icon" href="/icon-192.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="QuizMania"/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet loaded on-demand inside getMapSVG() — not on initial page load -->
 <style>
 :root {
   --bg:#0f0c29;--bg2:#1a1744;--card:#1e1b4b;--card2:#2d2a6e;
@@ -655,8 +658,9 @@ header { padding-top: calc(14px + var(--safe-top)); }
       <span id="chip-name">Player</span>
       <span style="color:var(--text2);font-size:0.7rem">▾</span>
     </div>
-    <button class="btn-icon" onclick="showScreen('history')" title="My Quizzes" id="history-btn" style="display:none">📜</button>
+    <button class="btn-icon" onclick="showScreen('history')" title="My Stats" id="history-btn" style="display:none">📜</button>
     <button class="btn-icon" onclick="showScreen('leaderboard')" title="Leaderboard" id="lb-btn" style="display:none">🏆</button>
+    <button class="btn-icon" onclick="inviteFriend()" title="Invite Friends" id="invite-btn" style="display:none">📨</button>
     <button class="btn-icon" onclick="toggleMute()" title="Mute sounds" id="mute-btn">🔊</button>
     <button class="btn-icon" onclick="toggleTheme()" title="Toggle theme" id="theme-btn">🌙</button>
   </div>
@@ -830,29 +834,26 @@ header { padding-top: calc(14px + var(--safe-top)); }
     <div class="stats-row">
       <div class="stat-chip"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Quizzes</div></div>
       <div class="stat-chip"><div class="stat-num" id="stat-avg">—</div><div class="stat-label">Avg Score</div></div>
-      <div class="stat-chip"><div class="stat-num" id="stat-best-topic">—</div><div class="stat-label">Best Topic</div></div>
       <div class="stat-chip"><div class="stat-num" id="stat-streak">🔥0</div><div class="stat-label">Streak</div></div>
-      <div class="stat-chip" id="stat-rank-chip" style="display:none;cursor:pointer" onclick="showScreen('leaderboard')" title="View leaderboard"><div class="stat-num" id="stat-rank" style="color:var(--gold)">—</div><div class="stat-label">🌍 Global Rank</div></div>
     </div>
 
-    <!-- AdSense (adults only) — replace YOUR_ADSENSE_PUBLISHER_ID and YOUR_AD_SLOT_ID -->
+    <!-- AdSense (adults only) -->
     <div class="ad-unit" id="ad-unit-home">
       <div class="ad-label">Advertisement</div>
-      <ins class="adsbygoogle"
-           style="display:block"
+      <ins class="adsbygoogle" style="display:block"
            data-ad-client="YOUR_ADSENSE_PUBLISHER_ID"
            data-ad-slot="YOUR_AD_SLOT_ID"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
+           data-ad-format="auto" data-full-width-responsive="true"></ins>
     </div>
 
-    <!-- Streak banner -->
-    <div class="streak-bar" id="streak-bar" style="display:none">
-      <div class="streak-num" id="streak-num">🔥 0</div>
-      <div>
-        <div style="font-weight:800;font-size:0.9rem">Day Streak!</div>
-        <div style="font-size:0.75rem;color:var(--text2)">Keep playing to keep it alive!</div>
+    <!-- Compact XP + Streak row (merged) -->
+    <div id="xp-streak-row" style="display:none;align-items:center;gap:10px;margin-bottom:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;">
+      <div id="level-badge" style="background:var(--accent);color:#fff;font-size:0.72rem;font-weight:900;padding:3px 8px;border-radius:8px;white-space:nowrap">Lv 1</div>
+      <div style="flex:1">
+        <div class="xp-track" style="margin-bottom:0"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
       </div>
+      <div id="xp-label" style="font-size:0.72rem;color:var(--text2);font-weight:700;white-space:nowrap">0/100 XP</div>
+      <div id="streak-pill" style="display:none;background:rgba(245,158,11,0.15);border:1px solid var(--gold);color:var(--gold);font-size:0.72rem;font-weight:900;padding:3px 8px;border-radius:8px;white-space:nowrap">🔥0</div>
     </div>
 
     <!-- Challenge banner (appears when opened via challenge link) -->
@@ -867,66 +868,46 @@ header { padding-top: calc(14px + var(--safe-top)); }
       </div>
     </div>
 
-    <!-- XP Bar -->
-    <div class="xp-bar-wrap" id="xp-bar-wrap" style="display:none">
-      <div class="level-badge" id="level-badge">Lv 1</div>
-      <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
-      <div class="xp-label" id="xp-label">0 / 100 XP</div>
-    </div>
-
-    <!-- Daily Challenge -->
-    <div class="daily-banner" id="daily-banner" onclick="startDailyChallenge()">
-      <div class="daily-icon">⭐</div>
-      <div class="daily-info">
-        <div class="daily-title">Daily Challenge</div>
-        <div class="daily-sub" id="daily-sub">10 mixed questions — same for everyone today!</div>
+    <!-- Challenges card (Daily + Weekly merged) -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;">
+      <div id="daily-banner" onclick="startDailyChallenge()" style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:var(--transition)">
+        <div style="font-size:1.6rem">⭐</div>
+        <div style="flex:1">
+          <div style="font-weight:900;font-size:0.92rem">Daily Challenge</div>
+          <div style="font-size:0.76rem;color:var(--text2)" id="daily-sub">10 mixed questions — same for everyone today!</div>
+        </div>
+        <div class="daily-badge" id="daily-badge" style="font-size:0.78rem;padding:5px 12px">Play</div>
       </div>
-      <div class="daily-badge" id="daily-badge">Play Now</div>
-    </div>
-
-    <!-- FIFA 2026 Predictions -->
-    <div class="fifa-banner" onclick="showScreen('fifa')">
-      <div style="font-size:2.2rem">⚽</div>
-      <div style="flex:1">
-        <div style="font-weight:900;font-size:1rem">FIFA World Cup 2026 Predictions</div>
-        <div style="font-size:0.78rem;color:var(--text2);margin-top:2px">Pick winners · See expert AI predictions · Jun 11 – Jul 19</div>
+      <div id="weekly-banner" onclick="startWeeklyChallenge()" style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;transition:var(--transition)">
+        <div style="font-size:1.6rem">🏆</div>
+        <div style="flex:1">
+          <div style="font-weight:900;font-size:0.92rem">Weekly Challenge</div>
+          <div style="font-size:0.76rem;color:var(--text2)" id="weekly-sub">20 questions — resets every Monday!</div>
+        </div>
+        <div class="daily-badge" id="weekly-badge" style="font-size:0.78rem;padding:5px 12px;background:var(--accent2)">Play</div>
       </div>
-      <div class="daily-badge" style="background:#00a550;white-space:nowrap">Predict! 🔥</div>
     </div>
 
-    <!-- Weekly Challenge -->
-    <div class="daily-banner" id="weekly-banner" onclick="startWeeklyChallenge()" style="border-color:var(--accent2);background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(59,130,246,0.08))">
-      <div class="daily-icon">🏆</div>
-      <div class="daily-info">
-        <div class="daily-title">Weekly Challenge</div>
-        <div class="daily-sub" id="weekly-sub">20 questions across all topics — resets every Monday!</div>
-      </div>
-      <div class="daily-badge" id="weekly-badge" style="background:var(--accent2)">Play Now</div>
-    </div>
-
-    <!-- Recommendations -->
-    <div class="reco-section" id="reco-section" style="display:none">
-      <div class="section-title">💪 Practice These</div>
-      <div class="reco-row" id="reco-row"></div>
-    </div>
 
     <!-- TOPIC GRID — main action -->
     <div class="section-title">🎯 Choose a Topic</div>
     <div class="topic-grid" id="topic-grid"></div>
 
-    <!-- Invite Friends -->
-    <div class="invite-row" id="invite-row">
-      <div class="invite-card" onclick="inviteFriend()">
-        <div class="invite-card-icon">📨</div>
-        <div>
-          <div style="font-weight:800;font-size:0.92rem">Invite Friends &amp; Family</div>
-          <div style="font-size:0.76rem;color:var(--text2);margin-top:2px">Share QuizMania — play together!</div>
-        </div>
+    <!-- FIFA 2026 Predictions (below topics) -->
+    <div class="fifa-banner" onclick="showScreen('fifa')" style="margin-bottom:16px">
+      <div style="font-size:1.8rem">⚽</div>
+      <div style="flex:1">
+        <div style="font-weight:900;font-size:0.92rem">FIFA World Cup 2026 Predictions</div>
+        <div style="font-size:0.76rem;color:var(--text2);margin-top:2px">Pick winners · See expert predictions</div>
       </div>
+      <div class="daily-badge" style="background:#00a550;font-size:0.78rem;padding:5px 12px;white-space:nowrap">Predict!</div>
     </div>
 
-    <!-- Themed packs -->
-    <div class="section-title" style="margin-top:4px">🎮 Fun Packs</div>
+    <!-- Fun Packs (collapsed) -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="section-title" style="margin-bottom:0">🎮 Fun Packs</div>
+      <button id="packs-toggle" onclick="togglePacks()" style="background:transparent;border:none;color:var(--accent2);font-size:0.8rem;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif">Show all ↓</button>
+    </div>
     <div class="packs-row" id="fun-packs-row">
       <div class="pack-chip" onclick="usePack('Harry Potter')">🧙 Harry Potter</div>
       <div class="pack-chip" onclick="usePack('Minecraft')">⛏️ Minecraft</div>
@@ -934,16 +915,17 @@ header { padding-top: calc(14px + var(--safe-top)); }
       <div class="pack-chip" onclick="usePack('Disney Movies')">🏰 Disney</div>
       <div class="pack-chip" onclick="usePack('Premier League Football')">⚽ Premier League</div>
       <div class="pack-chip" onclick="usePack('Pokémon')">🎮 Pokémon</div>
-      <div class="pack-chip" onclick="usePack('Taylor Swift')">🎤 Taylor Swift</div>
-      <div class="pack-chip" onclick="usePack('The Olympics')">🏅 Olympics</div>
-      <div class="pack-chip" onclick="usePack('Fortnite')">🎯 Fortnite</div>
-      <div class="pack-chip" onclick="usePack('Squid Game')">🦑 Squid Game</div>
-      <div class="pack-chip" onclick="usePack('Formula 1 Racing')">🏎️ Formula 1</div>
-      <div class="pack-chip" onclick="usePack('BTS & K-Pop')">🎵 K-Pop</div>
-      <div class="pack-chip" onclick="usePack('Stranger Things')">🔦 Stranger Things</div>
-      <div class="pack-chip" onclick="usePack('NFL American Football')">🏈 NFL</div>
-      <div class="pack-chip" onclick="usePack('Roblox')">🟥 Roblox</div>
-      <div class="pack-chip" onclick="usePack('Among Us & Gaming Memes')">📱 Among Us</div>
+      <!-- Extra packs hidden by default -->
+      <div class="pack-chip pack-extra" style="display:none" onclick="usePack('Taylor Swift')">🎤 Taylor Swift</div>
+      <div class="pack-chip pack-extra" style="display:none" onclick="usePack('The Olympics')">🏅 Olympics</div>
+      <div class="pack-chip pack-extra" style="display:none" onclick="usePack('Fortnite')">🎯 Fortnite</div>
+      <div class="pack-chip pack-extra" style="display:none" onclick="usePack('Squid Game')">🦑 Squid Game</div>
+      <div class="pack-chip pack-extra" style="display:none" onclick="usePack('Formula 1 Racing')">🏎️ Formula 1</div>
+      <div class="pack-chip pack-extra" style="display:none" onclick="usePack('BTS & K-Pop')">🎵 K-Pop</div>
+      <div class="pack-chip pack-extra" style="display:none" onclick="usePack('Stranger Things')">🔦 Stranger Things</div>
+      <div class="pack-chip pack-extra" style="display:none" onclick="usePack('NFL American Football')">🏈 NFL</div>
+      <div class="pack-chip pack-extra" style="display:none" onclick="usePack('Roblox')">🟥 Roblox</div>
+      <div class="pack-chip pack-extra" style="display:none" onclick="usePack('Among Us & Gaming Memes')">📱 Among Us</div>
     </div>
     <!-- Adult fun packs (shown for adults only) -->
     <div id="adult-packs-row" style="display:none">
@@ -964,6 +946,7 @@ header { padding-top: calc(14px + var(--safe-top)); }
       </div>
     </div>
 
+
     <!-- Custom topic -->
     <div class="custom-row">
       <input class="form-input" id="custom-topic-input" placeholder="💡 Or type any topic… Formula 1, Roblox, BTS…"/>
@@ -974,19 +957,6 @@ header { padding-top: calc(14px + var(--safe-top)); }
     <div class="home-start-row">
       <button class="btn btn-primary btn-lg" onclick="goToSettings()">▶ Start Quiz</button>
       <button class="btn btn-secondary btn-lg" onclick="quickPlay()">🎲 Quick Play</button>
-      <button class="btn btn-secondary btn-lg" onclick="showScreen('history')">📜 My History</button>
-    </div>
-
-    <!-- Topic Progress Rings -->
-    <div id="strength-section" style="display:none;margin-bottom:24px">
-      <div class="section-title">📊 Topic Progress</div>
-      <div id="strength-bars" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch"></div>
-    </div>
-
-    <!-- Achievements -->
-    <div id="ach-section" style="display:none;margin-bottom:24px">
-      <div class="section-title">🏅 Achievements</div>
-      <div class="ach-row" id="ach-row"></div>
     </div>
   </div>
 </div>
@@ -1105,7 +1075,6 @@ header { padding-top: calc(14px + var(--safe-top)); }
         <button class="btn btn-primary next-quiz-btn" onclick="nextQuestion()" style="display:none">Next →</button>
       </div>
       <div class="question-card" id="question-card">
-        <div class="question-num" id="question-num">Question 1</div>
         <div class="question-text" id="question-text"></div>
         <div class="flag-display" id="flag-display" style="display:none">
           <span class="flag-emoji" id="flag-emoji"></span>
@@ -1114,11 +1083,11 @@ header { padding-top: calc(14px + var(--safe-top)); }
         <div class="map-container" id="map-container" style="display:none"></div>
         <div class="options-grid" id="options-grid"></div>
         <div class="explanation-box" id="explanation-box"></div>
+        <button id="report-q-btn" onclick="reportQuestion()" style="background:none;border:none;color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Nunito,sans-serif;margin-top:8px;padding:0;display:none">🚩 Report bad question</button>
       </div>
       <div class="quiz-actions">
         <button class="lifeline-btn" id="lifeline-btn" onclick="useFiftyFifty()">💡 50:50</button>
         <button class="lifeline-btn" id="claude-hint-btn" onclick="askClaudeHint()" style="border-color:var(--blue);color:var(--blue)">🤖 Hint</button>
-        <button class="lifeline-btn" id="report-q-btn" onclick="reportQuestion()" title="Report bad question" style="border-color:var(--text2);color:var(--text2);font-size:0.75rem;padding:6px 10px">🚩</button>
         <div id="q-timer-wrap" style="display:none;margin-left:8px">
           <svg class="q-timer-ring" viewBox="0 0 44 44">
             <circle class="q-timer-track" cx="22" cy="22" r="18"/>
@@ -1139,19 +1108,20 @@ header { padding-top: calc(14px + var(--safe-top)); }
     <div class="results-title" id="results-title">Quiz Complete!</div>
     <div class="results-score-big" id="results-score-big">0</div>
     <div class="results-sub" id="results-sub">points earned</div>
-    <div class="results-stats">
-      <div class="result-stat"><div class="result-stat-num" id="res-correct">0</div><div class="result-stat-label">Correct</div></div>
-      <div class="result-stat"><div class="result-stat-num" id="res-total">0</div><div class="result-stat-label">Total</div></div>
-      <div class="result-stat"><div class="result-stat-num" id="res-pct">0%</div><div class="result-stat-label">Score</div></div>
-      <div class="result-stat"><div class="result-stat-num" id="res-time">0s</div><div class="result-stat-label">Time</div></div>
-      <div class="result-stat"><div class="result-stat-num" id="res-streak">0</div><div class="result-stat-label">Best Streak</div></div>
+    <div id="res-summary" style="color:var(--text2);font-size:0.9rem;font-weight:700;margin-bottom:24px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+      <span>✅ <span id="res-correct">0</span>/<span id="res-total">0</span></span>
+      <span>📊 <span id="res-pct">0%</span></span>
+      <span>⏱ <span id="res-time">0s</span></span>
+      <span>🔥 <span id="res-streak">0</span> streak</span>
     </div>
     <div class="results-actions">
-      <button class="btn btn-primary btn-lg" onclick="playAgainFresh()">🔄 Fresh Questions</button>
-      <button class="btn btn-secondary btn-lg" onclick="replayExact()">📼 Replay</button>
-      <button class="btn btn-secondary" onclick="shareScore()">📤 Share</button>
-      <button class="btn btn-secondary" onclick="challengeFriend()">⚔️ Challenge</button>
-      <button class="btn btn-secondary" onclick="showScreen('home')">🏠 Home</button>
+      <button class="btn btn-primary btn-lg" onclick="playAgainFresh()">🔄 Play Again</button>
+      <button class="btn btn-secondary btn-lg" onclick="showScreen('home')">🏠 Home</button>
+    </div>
+    <div style="display:flex;gap:16px;justify-content:center;margin-top:10px;margin-bottom:4px">
+      <button onclick="shareScore()" style="background:none;border:none;color:var(--text2);font-size:0.82rem;font-weight:700;cursor:pointer;font-family:Nunito,sans-serif">📤 Share</button>
+      <button onclick="challengeFriend()" style="background:none;border:none;color:var(--text2);font-size:0.82rem;font-weight:700;cursor:pointer;font-family:Nunito,sans-serif">⚔️ Challenge</button>
+      <button onclick="replayExact()" style="background:none;border:none;color:var(--text2);font-size:0.82rem;font-weight:700;cursor:pointer;font-family:Nunito,sans-serif">📼 Replay</button>
     </div>
     <div class="review-list">
       <h3>📋 Answer Review</h3>
@@ -1195,11 +1165,11 @@ header { padding-top: calc(14px + var(--safe-top)); }
     <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
       <button id="lb-tab-global" class="pill" onclick="switchLbTab('global')">🌍 Global</button>
       <button id="lb-tab-local" class="pill selected" onclick="switchLbTab('local')">📱 This Device</button>
-      <button id="lb-refresh-btn" class="btn btn-secondary" onclick="refreshGlobalLeaderboard()" style="margin-left:auto;padding:6px 12px;font-size:0.8rem;display:none" title="Refresh rankings">🔄 Refresh</button>
+      <button id="lb-refresh-btn" class="btn btn-secondary" onclick="refreshGlobalLeaderboard()" style="margin-left:auto;padding:6px 12px;font-size:0.8rem;display:none" title="Refresh rankings">🔄</button>
+      <button id="lb-filter-btn" class="btn btn-secondary" onclick="toggleLbFilter()" style="padding:6px 12px;font-size:0.8rem;display:none">Filter ↓</button>
     </div>
-    <!-- Age group filter (global only) -->
+    <!-- Age group filter (global only, hidden behind toggle) -->
     <div id="lb-age-row" style="display:none;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <span style="font-size:0.8rem;color:var(--text2);font-weight:700;align-self:center">Age:</span>
       <button id="lb-age-all"    class="pill selected" onclick="switchLbAge('all')"    style="font-size:0.78rem;padding:5px 12px">🌍 All</button>
       <button id="lb-age-kids"   class="pill"          onclick="switchLbAge('kids')"   style="font-size:0.78rem;padding:5px 12px">🐣 Kids</button>
       <button id="lb-age-tweens" class="pill"          onclick="switchLbAge('tweens')" style="font-size:0.78rem;padding:5px 12px">🧒 Tweens</button>
@@ -1222,14 +1192,38 @@ header { padding-top: calc(14px + var(--safe-top)); }
 <div class="screen" id="history-screen">
   <div style="max-width:680px;margin:0 auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <h2 style="font-size:1.6rem;font-weight:900">📜 My Quizzes</h2>
+      <h2 style="font-size:1.6rem;font-weight:900">📜 My Stats</h2>
       <button class="btn btn-secondary" onclick="showScreen('home')">← Back</button>
     </div>
-    <p style="color:var(--text2);margin-bottom:18px;font-size:0.88rem">Your quiz history — review, replay, or try fresh questions.</p>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button id="stats-tab-progress" class="pill selected" onclick="switchStatsTab('progress')" style="flex:1;justify-content:center">📊 Progress</button>
+      <button id="stats-tab-history" class="pill" onclick="switchStatsTab('history')" style="flex:1;justify-content:center">📜 History</button>
+    </div>
+
+    <!-- Progress tab -->
+    <div id="stats-panel-progress">
+      <div id="strength-section" style="display:none;margin-bottom:24px">
+        <div class="section-title">📊 Topic Progress</div>
+        <div id="strength-bars" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch"></div>
+      </div>
+      <div id="ach-section" style="display:none;margin-bottom:24px">
+        <div class="section-title">🏅 Achievements</div>
+        <div class="ach-row" id="ach-row"></div>
+      </div>
+      <div id="stats-empty" style="text-align:center;padding:40px;color:var(--text2);display:none">
+        <div style="font-size:2.5rem;margin-bottom:10px">📊</div>
+        <div>Play a few quizzes to see your progress here!</div>
+      </div>
+    </div>
+
+    <!-- History tab content -->
     <div class="history-filters" id="history-filters">
       <div class="pill selected" onclick="filterHistory('all',this)">All</div>
     </div>
     <div id="history-list"></div>
+    </div><!-- end stats-panel-history -->
   </div>
 </div>
 
@@ -1655,6 +1649,14 @@ function switchLbSort(sort){
   displayGlobalPlayers();
 }
 
+function toggleLbFilter(){
+  const row = document.getElementById('lb-age-row');
+  const btn = document.getElementById('lb-filter-btn');
+  const visible = row.style.display === 'flex';
+  row.style.display = visible ? 'none' : 'flex';
+  btn.textContent = visible ? 'Filter ↓' : 'Filter ↑';
+}
+
 function switchLbAge(age){
   _lbAge = age;
   ['all','kids','tweens','teens','adults'].forEach(a => {
@@ -1676,8 +1678,9 @@ function renderLeaderboard(){
   document.getElementById('lb-tab-local').classList.toggle('selected', _lbTab==='local');
   const isGlobal = _lbTab === 'global';
   document.getElementById('lb-sort-row').style.display = isGlobal ? 'flex' : 'none';
-  document.getElementById('lb-age-row').style.display  = isGlobal ? 'flex' : 'none';
+  document.getElementById('lb-age-row').style.display  = 'none'; // always hidden until toggled
   document.getElementById('lb-refresh-btn').style.display = isGlobal ? '' : 'none';
+  document.getElementById('lb-filter-btn').style.display  = isGlobal ? '' : 'none';
 
   if(isGlobal) renderGlobalLeaderboard();
   else renderLocalLeaderboard();
@@ -2019,7 +2022,7 @@ function showScreen(name, dir){
   if(direction === 'right') s.classList.add('slide-right');
   else if(direction === 'left') s.classList.add('slide-left');
 
-  if(name==='history') renderHistory();
+  if(name==='history'){ renderHistory(); renderStrengthBarsForHistory(); renderAchievements(); }
   if(name==='home'){ updateHomeStats(); updateDailyBanner(); updateWeeklyBanner(); }
   if(name==='leaderboard'){ _lbTab = authUser ? 'global' : 'local'; renderLeaderboard(); }
   if(name==='fifa') loadFifaMatches();
@@ -2075,6 +2078,7 @@ function selectProfile(id){
   document.getElementById('chip-name').textContent = activeProfile.name;
   document.getElementById('history-btn').style.display='flex';
   document.getElementById('lb-btn').style.display='flex';
+  document.getElementById('invite-btn').style.display='flex';
   // Bottom nav
   const bnav = document.getElementById('bottom-nav');
   if(bnav){ bnav.classList.add('show'); }
@@ -2244,19 +2248,17 @@ function updateHomeStats(){
     hist.forEach(q=>{ if(!topics[q.topic]) topics[q.topic]=[]; topics[q.topic].push(q.pct); });
     let best='—',bestScore=0;
     Object.entries(topics).forEach(([t,scores])=>{ const a=scores.reduce((x,y)=>x+y,0)/scores.length; if(a>bestScore){bestScore=a;best=t;} });
-    document.getElementById('stat-best-topic').textContent = best.slice(0,8);
     renderStrengthBars(topics);
   } else {
     document.getElementById('stat-avg').textContent='—';
-    document.getElementById('stat-best-topic').textContent='—';
   }
 
   // Streak
   const streak = activeProfile.streak||0;
   document.getElementById('stat-streak').textContent='🔥'+streak;
-  const streakBar = document.getElementById('streak-bar');
-  if(streak>1){ streakBar.style.display='flex'; document.getElementById('streak-num').textContent='🔥 '+streak; }
-  else { streakBar.style.display='none'; }
+  // Update streak pill in merged XP+streak row
+  const streakPill = document.getElementById('streak-pill');
+  if(streakPill){ streakPill.style.display=streak>1?'block':'none'; streakPill.textContent='🔥'+streak; }
 
   // Achievements
   renderAchievements();
@@ -2266,6 +2268,22 @@ function updateHomeStats(){
   renderRecommendations();
   // Global rank badge
   updateHomeRankBadge();
+}
+
+function switchStatsTab(tab){
+  ['progress','history'].forEach(t=>{
+    document.getElementById('stats-tab-'+t).classList.toggle('selected', t===tab);
+    document.getElementById('stats-panel-'+t).style.display = t===tab ? 'block' : 'none';
+  });
+}
+
+function renderStrengthBarsForHistory(){
+  if(!activeProfile) return;
+  const hist = getHistory(activeProfile.id);
+  if(!hist || !hist.length) return;
+  const topics = {};
+  hist.forEach(q=>{ if(!topics[q.topic]) topics[q.topic]=[]; topics[q.topic].push(q.pct); });
+  renderStrengthBars(topics);
 }
 
 function renderStrengthBars(topics){
@@ -2297,6 +2315,15 @@ function renderStrengthBars(topics){
         <div style="font-size:0.6rem;color:var(--text2);margin-top:2px">${scores.length} quiz${scores.length!==1?'zes':''}</div>
       </div>`;
     }).join('');
+}
+
+// ---- FUN PACKS TOGGLE ----
+let _packsExpanded = false;
+function togglePacks(){
+  _packsExpanded = !_packsExpanded;
+  document.querySelectorAll('.pack-extra').forEach(el => el.style.display = _packsExpanded ? 'inline-flex' : 'none');
+  const btn = document.getElementById('packs-toggle');
+  if(btn) btn.textContent = _packsExpanded ? 'Show less ↑' : 'Show all ↓';
 }
 
 function selectTopicFromRing(topic){
@@ -2744,7 +2771,7 @@ function showQuestion(){
   const q=qe.questions[qe.idx];
   if(!q||((quizMode==='questions'||quizMode==='truefalse')&&qe.idx>=quizCount)){endQuiz();return;}
 
-  document.getElementById('question-num').textContent='Question '+(qe.idx+1)+(replayMode?' 📼':'');
+  const qnEl=document.getElementById('question-num'); if(qnEl) qnEl.textContent='Question '+(qe.idx+1)+(replayMode?' 📼':'');
   document.getElementById('question-text').textContent=q.question;
   document.getElementById('progress-label').textContent='Q '+(qe.idx+1)+' of '+(quizMode==='questions'?quizCount:'?');
   document.getElementById('progress-fill').style.width=quizMode==='questions'?((qe.idx/quizCount)*100)+'%':'0%';
@@ -2784,9 +2811,9 @@ function showQuestion(){
   lb.disabled=qe.lifelineUsed||!qe.hintsOn;
   lb.style.display=qe.hintsOn?'flex':'none';
   document.getElementById('claude-hint-btn').disabled=qe.hintUsed;
-  // Reset report button for each new question
+  // Reset report link for each new question
   const rb=document.getElementById('report-q-btn');
-  if(rb){rb.disabled=false;rb.textContent='🚩';rb.title='Report bad question';}
+  if(rb){rb.disabled=false;rb.textContent='🚩 Report bad question';rb.style.display='none';}
 
   if(qe.voiceOn) speak(q.question);
   startPerQuestionTimer();
@@ -2838,6 +2865,7 @@ function pickAnswer(btn, idx){
     box.classList.add('show');
   }
   document.querySelectorAll('.next-quiz-btn').forEach(b=>b.style.display='flex');
+  const rb=document.getElementById('report-q-btn'); if(rb) rb.style.display='inline';
   if(qe.voiceOn) speak(correct?'Correct!':'Incorrect. The answer was '+q.answer);
 }
 
@@ -3191,26 +3219,38 @@ function getMapSVG(cc, topic){
   if(!coords) return '';
   const [lat, lng, zoom] = coords;
 
-  // Schedule Leaflet init after innerHTML is set
-  setTimeout(() => {
+  // Lazy-load Leaflet CSS+JS on first map use
+  function _initLeafletMap(lat, lng, zoom){
     const el = document.getElementById('qm-leaf-map');
     if(!el || el._leaflet_id) return;
     try {
       window._leafletMap = L.map('qm-leaf-map', {
-        zoomControl: false, attributionControl: false,
-        dragging: false, touchZoom: false,
-        scrollWheelZoom: false, doubleClickZoom: false,
-        boxZoom: false, keyboard: false
+        zoomControl:false, attributionControl:false,
+        dragging:false, touchZoom:false, scrollWheelZoom:false,
+        doubleClickZoom:false, boxZoom:false, keyboard:false
       }).setView([lat, lng], zoom);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 10
-      }).addTo(window._leafletMap);
-      // Gold pin at country center
-      L.circleMarker([lat, lng], {
-        radius: 9, color: '#f59e0b', weight: 3,
-        fillColor: '#f59e0b', fillOpacity: 0.85
-      }).addTo(window._leafletMap);
-    } catch(e) {}
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:10}).addTo(window._leafletMap);
+      L.circleMarker([lat, lng],{radius:9,color:'#f59e0b',weight:3,fillColor:'#f59e0b',fillOpacity:0.85}).addTo(window._leafletMap);
+    } catch(e){}
+  }
+
+  // Schedule Leaflet init — lazy-load CSS+JS if not already present
+  setTimeout(() => {
+    if(typeof L === 'undefined'){
+      // First map use — inject Leaflet CSS and JS
+      if(!document.getElementById('leaflet-css')){
+        const lc = document.createElement('link');
+        lc.id='leaflet-css'; lc.rel='stylesheet';
+        lc.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(lc);
+      }
+      const ls = document.createElement('script');
+      ls.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      ls.onload=()=>_initLeafletMap(lat, lng, zoom);
+      document.head.appendChild(ls);
+    } else {
+      _initLeafletMap(lat, lng, zoom);
+    }
   }, 60);
 
   return `
@@ -3361,7 +3401,7 @@ function updateXPBar(){
   const xp=activeProfile.xp||0;
   const lv=getXPLevel(xp);
   const next=XP_LEVELS.find(l=>l.level===lv.level+1);
-  const wrap=document.getElementById('xp-bar-wrap');
+  const wrap=document.getElementById('xp-streak-row');
   if(!wrap) return;
   wrap.style.display='flex';
   document.getElementById('level-badge').textContent='Lv '+lv.level+' '+lv.name;

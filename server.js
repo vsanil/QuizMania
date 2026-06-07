@@ -1,7 +1,9 @@
 const express = require('express');
 const path = require('path');
+const compression = require('compression');
 
 const app = express();
+app.use(compression()); // gzip all responses — ~70% smaller over the wire
 const PORT = process.env.PORT || 3000;
 
 // ── CORS — allow browser, Capacitor iOS, Capacitor Android ───────────────────
