@@ -954,9 +954,8 @@ header { padding-top: calc(14px + var(--safe-top)); }
 
 
     <!-- Custom topic -->
-    <div class="custom-row">
-      <input class="form-input" id="custom-topic-input" placeholder="💡 Or type any topic… Formula 1, Roblox, BTS…"/>
-      <button class="btn btn-secondary" onclick="useCustomTopic()">+ Use This</button>
+    <div style="margin-bottom:20px">
+      <input class="form-input" id="custom-topic-input" placeholder="💡 Or type any topic… Lord of the Rings, Roblox, BTS…" oninput="useCustomTopic()" onkeydown="if(event.key==='Enter')goToSettings()"/>
     </div>
 
     <!-- Start -->
@@ -2553,7 +2552,12 @@ function selectTopic(el,id){
 
 function useCustomTopic(){
   const val = document.getElementById('custom-topic-input').value.trim();
-  if(!val){ toast('Type a topic first!','error'); return; }
+  if(!val){
+    // Input cleared — reset selectedTopic so a card selection takes over
+    selectedTopic = null;
+    document.getElementById('home-sub').textContent = 'Pick a topic below and start your quiz';
+    return;
+  }
   selectedTopic = val;
   document.querySelectorAll('.topic-card').forEach(c=>c.classList.remove('selected'));
   document.getElementById('home-sub').textContent = '✏️ '+val+' selected — hit Start Quiz!';
