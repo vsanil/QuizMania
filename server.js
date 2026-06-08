@@ -158,6 +158,9 @@ Return ONLY a JSON array, no markdown:
 "answer" must exactly match one of the options.`;
 }
 
+// ── /api/health — lightweight ping to wake the server (avoids cold-start lag) ──
+app.get('/api/health', (req, res) => res.json({ ok: true, t: Date.now() }));
+
 // ── /api/questions — cached question generation ───────────────────────────────
 app.post('/api/questions', async (req, res) => {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -179,13 +182,16 @@ app.post('/api/questions', async (req, res) => {
 
   // Generate fresh
   try {
-    const prompt = buildPrompt(topic, difficulty, count + 10, age, mode, askedList); // +10 extra for cache
+    // Small "quick start" batches (the first 1–4 questions) generate EXACTLY what's
+    // asked for, so the first question appears fast. Larger batches add +10 to warm the cache.
+    const genCount = count <= 4 ? count : count + 10;
+    const prompt = buildPrompt(topic, difficulty, genCount, age, mode, askedList);
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: count > 20 ? 8000 : count > 10 ? 4000 : 3000,
+        max_tokens: genCount > 20 ? 8000 : genCount > 10 ? 4000 : genCount <= 4 ? 1200 : 3000,
         system: 'You are a quiz question generator. Return ONLY valid JSON arrays. No markdown, no explanation.',
         messages: [{ role: 'user', content: prompt }]
       })

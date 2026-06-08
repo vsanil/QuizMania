@@ -142,6 +142,28 @@ Adults: Netflix, True Crime, Classic Rock, Pub Quiz, World Politics, Food & Wine
 
 ## Session Log
 
+### Session 15 (June 8, 2026) — Faster quiz start (cold start + prefetch fixes)
+- **Problem:** Questions loaded slowly at the start of a quiz. Three root causes found and fixed.
+- **1. Render free-tier cold start** (server sleeps after ~15 min idle; first request waited 30–50s):
+  - `server.js`: added lightweight `GET /api/health` → `{ok:true}`.
+  - `index.html`: pings `/api/health` on app load (in `window load`) to wake the server while the user is still on the home screen.
+- **2. The "quick" first batch was over-generating.** The client asked for 2 questions but the server padded every request with `+10` (for cache warming), so even the fast first call generated ~12 questions.
+  - `server.js`: `genCount = count <= 4 ? count : count + 10` — small quick-start batches now generate exactly what's asked. `max_tokens` for tiny batches dropped to 1200 → faster first response. Larger batches still pad +10 to warm the cache.
+- **3. Prefetch was thrown away on every settings change.** `goToSettings()` started a prefetch with default settings, but `selectMode/Count/Time/Diff` each set `_prefetch=null`, so anyone who tweaked a setting lost it and re-fetched fresh on Start.
+  - New `triggerPrefetch()` (debounced 250ms) invalidates immediately (no stale prefetch) then re-warms for the *current* settings. Called from `goToSettings` + all four `select*` handlers.
+  - `selectQTimer` no longer nulls the prefetch (the per-question timer doesn't change question content).
+  - Quick-start buffer bumped from 2 → 3 questions across `goToSettings`/`triggerPrefetch`, `startQuiz` fallback, and the daily/challenge prefetch.
+- Verified `server.js` and `index.html` both parse.
+
+### Session 14 (June 8, 2026) — Save & Resume quiz + combo badge overlap fix
+- **Save & Quit / Resume:**
+  - "✕ Quit" now opens a modal with **💾 Save & Quit** (in addition to Keep Playing / Quit). Saving snapshots the full quiz to `localStorage` key `qm_saved_quiz_{pid}` — questions, score, answers, streak/combo, adaptive difficulty, lifelines, toggles, elapsed time, and (timed mode) `timerLeft`.
+  - Home screen shows a purple **"⏸️ Resume your quiz"** banner when a save exists (`updateResumeBanner()` in the `home` showScreen hook). Tapping it calls `resumeQuiz()` — restores all globals + `qe`, re-shows the quiz screen, restarts the timed countdown if needed, and continues at the next un-answered question (`idx = answers.length`, so no double-counting).
+  - One save slot per profile. Save overwrites; resuming or finishing (`endQuiz` → `clearSavedQuiz()`) clears it. Save & Quit is hidden during replay mode.
+  - New fns: `saveQuizState`, `getSavedQuiz`, `clearSavedQuiz`, `saveAndQuit`, `updateResumeBanner`, `resumeQuiz`, `_savedQuizKey`.
+- **Combo badge hiding the question (iPad/mobile/desktop):** `.combo-badge` was `position:absolute; top:12px; left:12px`, sitting directly on top of the first line of question text. Moved it to a centered ribbon on the card's top edge (`top:-14px; left:50%; translateX(-50%)`, with `pointer-events:none` + shadow). Updated the `comboPop` keyframes to keep the `translateX(-50%)` during the scale animation so it stays centered.
+- Verified all script blocks parse; `.question-card` has no `overflow:hidden` so the ribbon isn't clipped.
+
 ### Session 13 (June 7, 2026) — Fix: questions auto-advancing without an answer
 - **Bug:** Reported in a FIFA 2026 quiz — questions skipped to the next without the player's answer registering.
 - **Root cause:** A redundant second "Next →" button was rendered at the *top* of the question (above the question card) in addition to the one in the footer. On mobile it popped up right where players tap answers, so a fast double-tap / ghost-click hit Next and skipped the question before the answer counted. (Per-question timer ruled out — user never enabled it; default is Off.)

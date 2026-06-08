@@ -386,9 +386,10 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .xp-label{font-size:0.72rem;color:var(--text2);font-weight:700;white-space:nowrap;}
 
 /* ============ COMBO ============ */
-.combo-badge{position:absolute;top:12px;left:12px;background:linear-gradient(135deg,#f97316,var(--red));color:#fff;
-  font-weight:900;font-size:0.85rem;padding:5px 12px;border-radius:20px;animation:comboPop 0.3s cubic-bezier(0.34,1.56,0.64,1);z-index:5;}
-@keyframes comboPop{from{transform:scale(0.5)}to{transform:scale(1)}}
+.combo-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#f97316,var(--red));color:#fff;
+  font-weight:900;font-size:0.82rem;padding:5px 14px;border-radius:20px;white-space:nowrap;pointer-events:none;
+  box-shadow:0 4px 14px rgba(249,115,22,0.45);animation:comboPop 0.3s cubic-bezier(0.34,1.56,0.64,1);z-index:5;}
+@keyframes comboPop{from{transform:translateX(-50%) scale(0.5)}to{transform:translateX(-50%) scale(1)}}
 
 /* ============ PER-QUESTION TIMER ============ */
 .q-timer-ring{width:44px;height:44px;flex-shrink:0;}
@@ -855,6 +856,16 @@ header { padding-top: calc(14px + var(--safe-top)); }
       <div class="stat-chip"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Quizzes</div></div>
       <div class="stat-chip"><div class="stat-num" id="stat-avg">—</div><div class="stat-label">Avg Score</div></div>
       <div class="stat-chip"><div class="stat-num" id="stat-streak">🔥0</div><div class="stat-label">Streak</div></div>
+    </div>
+
+    <!-- Resume saved quiz -->
+    <div id="resume-banner" onclick="resumeQuiz()" style="display:none;align-items:center;gap:12px;padding:13px 16px;margin-bottom:16px;cursor:pointer;background:linear-gradient(135deg,rgba(124,58,237,0.18),rgba(59,130,246,0.12));border:1px solid var(--accent);border-radius:16px;transition:var(--transition)">
+      <div style="font-size:1.6rem">⏸️</div>
+      <div style="flex:1">
+        <div style="font-weight:900;font-size:0.95rem">Resume your quiz</div>
+        <div style="font-size:0.78rem;color:var(--text2)" id="resume-sub">Pick up where you left off</div>
+      </div>
+      <div class="daily-badge" style="font-size:0.78rem;padding:5px 12px;background:var(--accent)">Resume ▶</div>
     </div>
 
     <!-- AdSense (adults only) -->
@@ -1407,6 +1418,9 @@ let qe = {}; // quiz engine
 
 // ---- INIT ----
 window.addEventListener('load', async () => {
+  // Wake the server early (Render free tier sleeps after inactivity) so the
+  // first quiz isn't stuck behind a cold start.
+  fetch(API_BASE + '/api/health').catch(() => {});
   loadTheme();
   loadMute();
   loadProfiles();
@@ -2069,7 +2083,7 @@ function showScreen(name, dir){
   else if(direction === 'left') s.classList.add('slide-left');
 
   if(name==='history'){ renderHistory(); renderStrengthBarsForHistory(); renderAchievements(); }
-  if(name==='home'){ updateHomeStats(); updateDailyBanner(); updateWeeklyBanner(); }
+  if(name==='home'){ updateHomeStats(); updateDailyBanner(); updateWeeklyBanner(); updateResumeBanner(); }
   if(name==='leaderboard'){ _lbTab = authUser ? 'global' : 'local'; renderLeaderboard(); }
   if(name==='fifa') loadFifaMatches();
 }
@@ -2702,20 +2716,32 @@ function goToSettings(){
   const icon = TOPICS.find(t=>t.id===selectedTopic)?.icon||'✏️';
   document.getElementById('settings-topic-badge').textContent = icon+' '+selectedTopic;
   showScreen('settings');
-  // Pre-fetch: first 2 questions fast, rest in background
-  _prefetch = null;
-  _prefetchRemainder = null;
-  const n = quizMode==='timed' ? 50 : quizCount;
-  const QUICK = Math.min(2, n);
-  _prefetch = generateQuestions(selectedTopic, quizDiff, QUICK, activeProfile?.age||'tweens')
-    .catch(()=>{ _prefetch=null; });
-  if(n > QUICK){
-    _prefetchRemainder = _prefetch
-      .then(firstQs => firstQs
-        ? generateQuestions(selectedTopic, quizDiff, n - QUICK, activeProfile?.age||'tweens')
-        : [])
-      .catch(()=>[]);
-  }
+  triggerPrefetch();
+}
+
+// (Re)start the background prefetch for the CURRENT settings. Called when entering
+// settings and whenever a setting changes, so the first questions are usually
+// ready by the time the user taps Start. Invalidates immediately to avoid serving
+// a stale prefetch built with different settings.
+let _prefetchTimer = null;
+function triggerPrefetch(){
+  _prefetch = null; _prefetchRemainder = null;
+  if(!selectedTopic) return;
+  clearTimeout(_prefetchTimer);
+  _prefetchTimer = setTimeout(()=>{
+    const age = activeProfile?.age||'tweens';
+    const n = quizMode==='timed' ? 50 : quizCount;
+    const QUICK = Math.min(3, n);
+    _prefetch = generateQuestions(selectedTopic, quizDiff, QUICK, age)
+      .catch(()=>{ _prefetch=null; });
+    if(n > QUICK){
+      _prefetchRemainder = _prefetch
+        .then(firstQs => firstQs
+          ? generateQuestions(selectedTopic, quizDiff, n - QUICK, age)
+          : [])
+        .catch(()=>[]);
+    }
+  }, 250); // debounce rapid taps across mode/count/difficulty
 }
 
 // ---- SETTINGS ----
@@ -2726,25 +2752,25 @@ function selectMode(el){
   const showCount = quizMode==='questions'||quizMode==='truefalse';
   document.getElementById('q-count-section').style.display=showCount?'block':'none';
   document.getElementById('q-time-section').style.display=quizMode==='timed'?'block':'none';
-  _prefetch=null; _prefetchRemainder=null;
+  triggerPrefetch();
 }
 function selectCount(el){
   document.querySelectorAll('[data-count]').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
   quizCount=parseInt(el.dataset.count);
-  _prefetch=null;
+  triggerPrefetch();
 }
 function selectTime(el){
   document.querySelectorAll('[data-time]').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
   quizTime=parseInt(el.dataset.time);
-  _prefetch=null;
+  triggerPrefetch();
 }
 function selectDiff(el){
   document.querySelectorAll('[data-diff]').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
   quizDiff=el.dataset.diff;
-  _prefetch=null;
+  triggerPrefetch();
 }
 
 // ---- CLAUDE API (hints only) ----
@@ -2870,9 +2896,9 @@ async function startQuiz(replayQs=null){
         }).catch(()=>{ qe._morePromise=null; });
       }
     } else {
-      // No prefetch — load 2 fast, rest in background
+      // No prefetch — load a few fast, rest in background
       const n = quizMode==='timed' ? 50 : quizCount;
-      const QUICK = Math.min(2, n);
+      const QUICK = Math.min(3, n);
       qe.questions = await generateQuestions(selectedTopic,quizDiff,QUICK,age);
       if(n > QUICK){
         qe._morePromise = generateQuestions(selectedTopic,quizDiff,n-QUICK,age)
@@ -3072,14 +3098,117 @@ async function askClaudeHint(){
 }
 
 function confirmQuit(){
+  const canSave = qe && qe.questions && qe.questions.length && !replayMode;
+  const actions = [{label:'Keep Playing', cls:'btn-secondary', action: closeModal}];
+  if(canSave) actions.push({label:'💾 Save & Quit', cls:'btn-primary', action: saveAndQuit});
+  actions.push({label:'Quit', cls:'btn-danger', action: ()=>{
+    closeModal(); clearInterval(qe.timerInterval); clearPerQuestionTimer(); showScreen('home');
+  }});
   showModal(
     '⚠️','Quit Quiz?',
-    'Your current progress will be lost.',
-    [
-      {label:'Keep Playing', cls:'btn-secondary', action: closeModal},
-      {label:'Quit', cls:'btn-danger', action: ()=>{ closeModal(); clearInterval(qe.timerInterval); showScreen('home'); }}
-    ]
+    canSave ? 'Save your progress to resume later, or quit without saving.' : 'Your current progress will be lost.',
+    actions
   );
+}
+
+// ===== SAVE & RESUME QUIZ =====
+function _savedQuizKey(){ return 'qm_saved_quiz_' + (activeProfile?.id || 'guest'); }
+
+function saveQuizState(){
+  if(!qe || !qe.questions || !qe.questions.length) return false;
+  const snap = {
+    v:1, ts:Date.now(),
+    topic:selectedTopic, mode:quizMode, diff:quizDiff, count:quizCount, time:quizTime,
+    qtimer:qTimerSec, replay:replayMode,
+    elapsed: Date.now() - (qe.startTime || Date.now()),
+    idx: qe.answers.length,          // resume at the next un-answered question
+    timerLeft: qe.timerLeft || 0,
+    qe:{
+      questions:qe.questions, score:qe.score, correct:qe.correct,
+      streak:qe.streak, bestStreak:qe.bestStreak, combo:qe.combo,
+      adaptDiff:qe.adaptDiff, answers:qe.answers,
+      lifelineUsed:qe.lifelineUsed, hintUsed:qe.hintUsed,
+      hintsOn:qe.hintsOn, explainOn:qe.explainOn, voiceOn:qe.voiceOn
+    }
+  };
+  try{ localStorage.setItem(_savedQuizKey(), JSON.stringify(snap)); return true; }
+  catch(e){ return false; }
+}
+
+function getSavedQuiz(){
+  try{ const s = localStorage.getItem(_savedQuizKey()); return s ? JSON.parse(s) : null; }
+  catch(e){ return null; }
+}
+
+function clearSavedQuiz(){
+  try{ localStorage.removeItem(_savedQuizKey()); }catch(e){}
+}
+
+function saveAndQuit(){
+  if(saveQuizState()){
+    closeModal();
+    clearInterval(qe.timerInterval);
+    clearPerQuestionTimer();
+    toast('Quiz saved! Resume it from the home screen 💾','success');
+    showScreen('home');
+  } else {
+    toast('Could not save this quiz','error');
+  }
+}
+
+function updateResumeBanner(){
+  const el = document.getElementById('resume-banner');
+  if(!el) return;
+  const s = getSavedQuiz();
+  if(!s || !s.qe || !s.qe.questions || s.idx >= s.qe.questions.length){
+    if(s) clearSavedQuiz();        // nothing left to resume
+    el.style.display = 'none';
+    return;
+  }
+  const sub = document.getElementById('resume-sub');
+  if(sub){
+    sub.textContent = s.mode === 'questions'
+      ? `${s.topic} · Question ${s.idx+1} of ${s.count}`
+      : `${s.topic} · ${s.qe.answers.length} answered`;
+  }
+  el.style.display = 'flex';
+}
+
+function resumeQuiz(){
+  const s = getSavedQuiz();
+  if(!s){ updateResumeBanner(); return; }
+
+  selectedTopic = s.topic; quizMode = s.mode; quizDiff = s.diff;
+  quizCount = s.count; quizTime = s.time; qTimerSec = s.qtimer || 0;
+  replayMode = !!s.replay;
+
+  qe = {
+    questions:s.qe.questions, idx:s.idx, score:s.qe.score, correct:s.qe.correct,
+    streak:s.qe.streak||0, bestStreak:s.qe.bestStreak||0, combo:s.qe.combo||0,
+    adaptDiff:s.qe.adaptDiff||quizDiff, answers:s.qe.answers||[],
+    lifelineUsed:!!s.qe.lifelineUsed, hintUsed:!!s.qe.hintUsed,
+    hintsOn:s.qe.hintsOn, explainOn:s.qe.explainOn, voiceOn:s.qe.voiceOn,
+    timerInterval:null, timerLeft:s.timerLeft||0,
+    startTime: Date.now() - (s.elapsed||0)
+  };
+
+  clearSavedQuiz();
+  showScreen('quiz');
+  document.getElementById('quiz-loading').style.display='none';
+  document.getElementById('quiz-content').style.display='block';
+  document.getElementById('quiz-topic-badge').textContent = selectedTopic;
+  document.getElementById('quiz-score').textContent = qe.score;
+
+  if(quizMode==='timed'){
+    document.getElementById('timer-display').style.display='block';
+    updateTimer();
+    qe.timerInterval = setInterval(()=>{ qe.timerLeft--; updateTimer(); if(qe.timerLeft<=0) endQuiz(); },1000);
+  } else {
+    document.getElementById('timer-display').style.display='none';
+  }
+
+  if(qe.idx >= qe.questions.length){ endQuiz(); return; }
+  showQuestion();
 }
 
 // ---- AUDIO ----
@@ -3107,6 +3236,7 @@ function speak(text){
 function endQuiz(){
   clearInterval(qe.timerInterval);
   clearPerQuestionTimer();
+  clearSavedQuiz();   // finished — nothing left to resume
   const total=qe.answers.length||qe.idx;
   const pct=total>0?Math.round((qe.correct/total)*100):0;
   const timeTaken=Math.round((Date.now()-qe.startTime)/1000);
@@ -3444,7 +3574,7 @@ function usePack(topic){
   document.getElementById('settings-topic-badge').textContent=icon+' '+topic;
   _prefetch=null; _prefetchRemainder=null;
   const n=quizMode==='timed'?50:quizCount;
-  const QUICK=Math.min(2,n);
+  const QUICK=Math.min(3,n);
   _prefetch=generateQuestions(topic,quizDiff,QUICK,activeProfile?.age||'tweens').catch(()=>{_prefetch=null;});
   if(n>QUICK){
     _prefetchRemainder=_prefetch.then(fq=>fq?generateQuestions(topic,quizDiff,n-QUICK,activeProfile?.age||'tweens'):[]).catch(()=>[]);
@@ -3461,7 +3591,7 @@ function selectQTimer(el){
   document.querySelectorAll('[data-qtimer]').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
   qTimerSec=parseInt(el.dataset.qtimer);
-  _prefetch=null;
+  // per-question timer doesn't change question content — keep the warm prefetch
 }
 
 function startPerQuestionTimer(){
