@@ -2582,8 +2582,18 @@ async function pickFifa(matchId, pick){
     }
   }
   updateFifaScoreChip();
-  // Update dots
-  renderCurrentFifaMatch();
+  // Update progress dots only — rebuilding the full card here can cause a ghost-click
+  // on the "Next Match →" button that appears during the same touch gesture.
+  const _dotsEl = document.getElementById('fifa-dots');
+  if(_dotsEl){
+    const _dList = _currentFifaList();
+    const _dIdx  = _currentFifaIdx();
+    _dotsEl.innerHTML = _dList.map((_,i)=>{
+      const _p = _fifaPicks[_dList[i].id];
+      const _c = i===_dIdx ? 'var(--accent)' : _p ? '#10b981' : 'var(--border)';
+      return `<div onclick="_setFifaIdx(${i});renderCurrentFifaMatch()" style="width:8px;height:8px;border-radius:50%;background:${_c};cursor:pointer;transition:all 0.2s"></div>`;
+    }).join('');
+  }
 }
 
 function revealPrediction(matchId, pred, userPick){
@@ -2624,17 +2634,21 @@ function revealPrediction(matchId, pred, userPick){
     const fa=document.getElementById('pf-a-'+matchId); if(fa) fa.style.width=pred.awayWin+'%';
   },50);
 
-  // Show a manual "Next Match" button after reveal. NO auto-advance —
-  // the user must tap to move on, so picks are never skipped/self-answered.
+  // Show "Next Match" button after a short delay.
+  // The delay prevents ghost-clicks: on mobile, touchend can fire on a button
+  // that appears in the same spot as the tapped pick button.
   const currentList = _currentFifaList();
   const currentIdx  = _currentFifaIdx();
   const isLast = currentIdx >= currentList.length - 1;
-  const wrap = document.getElementById('fifa-next-wrap-'+matchId);
-  if(wrap && !isLast){
-    wrap.innerHTML=`<button onclick="fifaNav(1)" style="background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:12px;font-weight:900;font-size:0.9rem;cursor:pointer;font-family:Nunito,sans-serif">Next Match →</button>`;
-  } else if(wrap && isLast){
-    wrap.innerHTML=`<div style="font-size:1.2rem;font-weight:900;color:var(--gold)">🏆 You've predicted all matches!</div>`;
-  }
+  setTimeout(()=>{
+    const wrap = document.getElementById('fifa-next-wrap-'+matchId);
+    if(!wrap) return;
+    if(!isLast){
+      wrap.innerHTML=`<button onclick="fifaNav(1)" style="background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:12px;font-weight:900;font-size:0.9rem;cursor:pointer;font-family:Nunito,sans-serif">Next Match →</button>`;
+    } else {
+      wrap.innerHTML=`<div style="font-size:1.2rem;font-weight:900;color:var(--gold)">🏆 You've predicted all matches!</div>`;
+    }
+  }, 350);
 }
 
 function updateFifaScoreChip(){

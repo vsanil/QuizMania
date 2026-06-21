@@ -543,9 +543,11 @@ if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`QuizMania running on port ${PORT}`);
     // Keep-alive ping — prevents Render free tier cold starts
-    setInterval(() => {
-      fetch('https://quizmania-pap3.onrender.com').catch(() => {});
-    }, 14 * 60 * 1000);
+    // DISABLED: burns all 750 free hours/month. Re-enable if upgrading to paid plan,
+    // or use an external cron (cron-job.org) to ping only during active hours.
+    // setInterval(() => {
+    //   fetch('https://quizmania-pap3.onrender.com').catch(() => {});
+    // }, 14 * 60 * 1000);
   });
 }
 
