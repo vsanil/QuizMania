@@ -542,12 +542,18 @@ app.get('/manifest.json', (req, res) => {
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`QuizMania running on port ${PORT}`);
-    // Keep-alive ping — prevents Render free tier cold starts
-    // DISABLED: burns all 750 free hours/month. Re-enable if upgrading to paid plan,
-    // or use an external cron (cron-job.org) to ping only during active hours.
-    // setInterval(() => {
-    //   fetch('https://quizmania-pap3.onrender.com').catch(() => {});
-    // }, 14 * 60 * 1000);
+    // 🚨 DO NOT ADD A KEEP-ALIVE SELF-PING HERE. One used to live at this spot:
+    //   setInterval(() => fetch('<own url>'), 14 * 60 * 1000)
+    // At 14 minutes against Render's 15-minute idle timer the service NEVER sleeps —
+    // ~24 h/day, ~720 h/mo of a 750-hour pool that is shared across every free service on
+    // the account. It caused two account-wide suspensions (2026-06-20 and 2026-08-18), each
+    // of which also took down unrelated apps.
+    // It was commented out on 2026-06-20 but that fix could not deploy (the service was
+    // already suspended and could not build), so Render kept running the June 13 build and
+    // the ping stayed live until 2026-08-21. Deleted outright now: commented-out code is an
+    // invitation to uncomment, and this particular line has cost two outages.
+    // If cold starts ever need fixing, use an EXTERNAL pinger on a time window, or pay for
+    // an always-on instance. Never ping yourself from inside the process.
   });
 }
 
