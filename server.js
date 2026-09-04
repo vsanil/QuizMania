@@ -25,6 +25,22 @@ app.use((req, res, next) => {
   next();
 });
 
+// ── TEMPORARY request log (added 2026-09-03) ────────────────────────────────
+// This service never sleeps despite having NO keep-alive: no cron-job.org job, an empty
+// Render Health Check Path, and the self-ping deleted in 9854377. That leaves real inbound
+// traffic as the only explanation, and the app had no request logging — so its log was empty
+// and told us nothing either way. This names what is actually arriving.
+// ⚠️ Render's idle timer counts INBOUND REQUESTS, not responses, so blocking bots in here
+// cannot make the service sleep — whatever reaches the process has already woken it. The fix
+// has to stop traffic before Render, or not at all. Diagnose first.
+// REMOVE once the source is identified.
+app.use((req, res, next) => {
+  console.log('REQ', req.method, req.originalUrl,
+              '| ua=', (req.headers['user-agent'] || '-').slice(0, 90),
+              '| ip=', req.headers['x-forwarded-for'] || req.ip);
+  next();
+});
+
 app.use(express.json({ limit: '5mb' }));
 
 // ── Static files (sw.js needs no-cache; CSS/JS get 1hr) ──────────────────────
